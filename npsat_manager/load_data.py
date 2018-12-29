@@ -1,4 +1,4 @@
-from npsat_manager import models, load_data
+from npsat_manager import models
 
 
 def load_crops():
