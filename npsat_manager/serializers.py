@@ -6,4 +6,4 @@ from npsat_manager import models
 class CropSerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:
 		model = models.Crop
-		fields = ('name',)
+		fields = ('id', 'name',)
