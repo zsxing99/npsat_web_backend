@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from npsat_manager.serializers import CropSerializer
+from npsat_manager import serializers
 from npsat_manager import models
 
 
@@ -13,7 +13,15 @@ from npsat_manager import models
 
 class CropViewSet(viewsets.ModelViewSet):
 	"""
-	API endpoint that allows viewing of CTD Data
+	API endpoint that allows listing of crops
 	"""
-	serializer_class = CropSerializer
+	serializer_class = serializers.CropSerializer
 	queryset = models.Crop.objects.order_by('name')
+
+
+class CountyViewSet(viewsets.ModelViewSet):
+	"""
+	API endpoint that allows listing of Counties
+	"""
+	serializer_class = serializers.CountySerializer
+	queryset = models.County.objects.order_by('name')

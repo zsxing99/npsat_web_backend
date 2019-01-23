@@ -1,4 +1,14 @@
+import csv
+import os
+
+from npsat_backend import settings
+
 from npsat_manager import models
+
+
+def load_all():
+	load_crops()
+	load_counties()
 
 
 def load_crops():
@@ -12,4 +22,15 @@ def load_crops():
 
 	for crop in crops:
 		models.Crop(name=crop).save()
+
+
+def load_counties():
+	"""
+		:return:
+	"""
+
+	with open(os.path.join(settings.BASE_DIR, "npsat_manager", "data", "counties.csv")) as county_file:
+		counties = csv.DictReader(county_file)
+		for county in counties:
+			models.County(name=county['name'], ab_code=county['abcode'], ansi_code=county['ansi']).save()
 

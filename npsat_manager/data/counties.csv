@@ -1,0 +1,59 @@
+FID,name,fullname,abbrev,abcode,ansi
+0,Siskiyou,Siskiyou County,SIS,c047,093
+1,Del Norte,Del Norte County,DNT,c008,015
+2,Modoc,Modoc County,MOD,c025,049
+3,Trinity,Trinity County,TRI,c053,105
+4,Shasta,Shasta County,SHA,c045,089
+5,Lassen,Lassen County,LAS,c018,035
+6,Humboldt,Humboldt County,HUM,c012,023
+7,Tehama,Tehama County,TEH,c052,103
+8,Plumas,Plumas County,PLU,c032,063
+9,Butte,Butte County,BUT,c004,007
+10,Glenn,Glenn County,GLE,c011,021
+11,Sierra,Sierra County,SIE,c046,091
+12,Yuba,Yuba County,YUB,c058,115
+13,Lake,Lake County,LAK,c017,033
+14,Nevada,Nevada County,NEV,c029,057
+15,Colusa,Colusa County,COL,c006,011
+16,Mendocino,Mendocino County,MEN,c023,045
+17,Sutter,Sutter County,SUT,c051,101
+18,Placer,Placer County,PLA,c031,061
+19,El Dorado,El Dorado County,ELD,c009,017
+20,Yolo,Yolo County,YOL,c057,113
+21,Alpine,Alpine County,ALP,c002,003
+22,Sonoma,Sonoma County,SON,c049,097
+23,Napa,Napa County,NAP,c028,055
+24,Sacramento,Sacramento County,SAC,c034,067
+25,Mono,Mono County,MNO,c026,051
+26,Amador,Amador County,AMA,c003,005
+27,Solano,Solano County,SOL,c048,095
+28,Calaveras,Calaveras County,CAL,c005,009
+29,Tuolumne,Tuolumne County,TUO,c055,109
+30,San Joaquin,San Joaquin County,SJQ,c039,077
+31,Marin,Marin County,MRN,c021,041
+32,Contra Costa,Contra Costa County,CCA,c007,013
+33,Stanislaus,Stanislaus County,STA,c050,099
+34,Alameda,Alameda County,ALA,c001,001
+35,Mariposa,Mariposa County,MPA,c022,043
+36,Madera,Madera County,MAD,c020,039
+37,San Francisco,San Francisco County,SFO,c038,075
+38,San Mateo,San Mateo County,SMT,c041,081
+39,Merced,Merced County,MER,c024,047
+40,Fresno,Fresno County,FRE,c010,019
+41,Santa Clara,Santa Clara County,SCL,c043,085
+42,Inyo,Inyo County,INY,c014,027
+43,Santa Cruz,Santa Cruz County,SCR,c044,087
+44,San Benito,San Benito County,SBT,c035,069
+45,Tulare,Tulare County,TUL,c054,107
+46,Kings,Kings County,KIN,c016,031
+47,Monterey,Monterey County,MNT,c027,053
+48,San Bernardino,San Bernardino County,SBD,c036,071
+49,Kern,Kern County,KER,c015,029
+50,San Luis Obispo,San Luis Obispo County,SLO,c040,079
+51,Ventura,Ventura County,VEN,c056,111
+52,Santa Barbara,Santa Barbara County,SBA,c042,083
+53,Riverside,Riverside County,RIV,c033,065
+54,Orange,Orange County,ORA,c030,059
+55,Imperial,Imperial County,IMP,c013,025
+56,Los Angeles,Los Angeles County,LAN,c019,037
+57,San Diego,San Diego County,SDG,c037,073
