@@ -18,10 +18,10 @@ def load_crops():
 	:return:
 	"""
 
-	crops = ["Corn", "Grapes", "Alfalfa", "Wheat", "Barley", "Rye"]
+	crops = [("Corn", 606), ("Grapes", 2200)]
 
 	for crop in crops:
-		models.Crop(name=crop).save()
+		models.Crop(name=crop[0], caml_code=crop[1]).save()
 
 
 def load_counties():

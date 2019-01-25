@@ -5,6 +5,7 @@ from django.db import models
 
 class Crop(models.Model):
 	name = models.CharField(max_length=255)
+	caml_code = models.PositiveSmallIntegerField()
 
 	def __str__(self):
 		return self.name
@@ -29,6 +30,7 @@ class Area(models.Model):
 	"""
 	npsat_id = models.IntegerField(null=True)
 	name = models.CharField(max_length=255)
+	active_in_npsat = models.BooleanField(default=False)  # Is this region actually ready to be selected?
 
 	class Meta:
 		abstract = True
@@ -57,3 +59,9 @@ class County(Area):
 """
 #areas = models.ManyToManyField(to=Area, related_name="area_groups")
 #name = models.CharField(max_length=255)
+
+
+class Modification(models.Model):
+	# run
+	crop = models.ForeignKey(Crop, on_delete=models.DO_NOTHING, related_name="modifications")
+	reduction = models.FloatField()

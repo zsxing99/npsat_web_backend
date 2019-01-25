@@ -24,4 +24,4 @@ class CountyViewSet(viewsets.ModelViewSet):
 	API endpoint that allows listing of Counties
 	"""
 	serializer_class = serializers.CountySerializer
-	queryset = models.County.objects.order_by('name')
+	queryset = models.County.objects.filter(active_in_npsat=True).order_by('name')
