@@ -3,6 +3,7 @@ import logging
 import sys
 
 import arcpy
+import arrow
 
 from npsat_backend import settings
 
@@ -105,7 +106,7 @@ def make_annual_loadings(modifications, years=settings.NgwRasters.keys()):
 		print(year)
 		base_loading_matrix = arcpy.RasterToNumPyArray(arcpy.Raster(settings.NgwRasters[year]))
 		if year >= settings.ChangeYear:  # if this year is after our reductions are supposed to be made
-			weight_matrix = make_weight_raster(settings.LandUserRasters[year], modifications=modifications)
+			weight_matrix = make_weight_raster(settings.LandUseRasters[year], modifications=modifications)
 			loadings[year] = weight_matrix * base_loading_matrix
 		else:  # otherwise, use the straight Ngw values - no changes have been made since they're in the past
 			loadings[year] = base_loading_matrix
@@ -130,6 +131,63 @@ def make_annual_loadings(modifications, years=settings.NgwRasters.keys()):
 
 	return all_years_data
 
+
+def convolute_and_sum(loadings, unit_response_functions=None):
+	"""
+
+	:param loadings:
+	:param unit_response_functions: A 3D array where 2D represents space and the third represents "time into the future"
+									from any arbitrary year.
+	:return:
+	"""
+
+	print("Convoluting")
+	if unit_response_functions is None:   # this logic is temporary, but have a safeguard so it's not accidentally used in production
+		if settings.DEBUG:
+			unit_response_functions = numpy.ones([loadings.shape[0], loadings.shape[1], loadings.shape[2]], dtype=numpy.float64)
+		else:
+			raise ValueError("Must provide Unit Response Functions!")
+
+	time_span = loadings.shape[2]
+	output_matrix = numpy.zeros([loadings.shape[0], loadings.shape[1], loadings.shape[2]], dtype=numpy.float64)
+
+	for year in range(time_span):
+		print(year)
+		URF_length = time_span - year
+
+		print("Subset")
+		subset_start = arrow.utcnow()
+		current_year_loadings = annual_loadings[:, :, year]
+		subset_end = arrow.utcnow()
+		print(subset_end - subset_start)
+
+		print("Reshape")
+		reshape_start = arrow.utcnow()
+		reshaped_loadings = current_year_loadings.reshape(current_year_loadings.shape + (1,))
+		print(reshaped_loadings.shape)
+		#repeated_loadings = numpy.repeat(reshaped_loadings, URF_length, 2)
+		reshape_end = arrow.utcnow()
+		print(reshape_end - reshape_start)
+
+		print("Multiply")
+		multiply_start = arrow.utcnow()
+		new_loadings = numpy.multiply(reshaped_loadings, unit_response_functions[:,:,:URF_length])
+		multiply_end = arrow.utcnow()
+		print(multiply_end - multiply_start)
+
+		print("Add and Insert Back in")
+		add_start = arrow.utcnow()
+		numpy.add(output_matrix[:, :, year:], new_loadings, output_matrix[:, :, year:])
+		add_end = arrow.utcnow()
+		print(add_end - add_start)
+		# multiply this year's matrix * URFs matrix sliced to represent size of future
+		# then add result to output_matrix
+
+	results = numpy.sum(output_matrix, [0,1])  # sum in 2D space
+
+
 if __name__ == "__main__":
 	annual_loadings = make_annual_loadings([])
 	print(annual_loadings.shape)
+	results = convolute_and_sum(annual_loadings,)
+	print(results)
