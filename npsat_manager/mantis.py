@@ -141,14 +141,16 @@ def convolute_and_sum(loadings, unit_response_functions=None):
 	:return:
 	"""
 
-	print("Convoluting")
+	loadings = loadings.T
+	print(loadings.shape)
+	print("Convolving")
 	if unit_response_functions is None:   # this logic is temporary, but have a safeguard so it's not accidentally used in production
 		if settings.DEBUG:
 			unit_response_functions = numpy.ones([loadings.shape[0], loadings.shape[1], loadings.shape[2]], dtype=numpy.float64)
 		else:
 			raise ValueError("Must provide Unit Response Functions!")
 
-	time_span = loadings.shape[2]
+	time_span = loadings.shape[0]
 	output_matrix = numpy.zeros([loadings.shape[0], loadings.shape[1], loadings.shape[2]], dtype=numpy.float64)
 
 	for year in range(time_span):
@@ -157,33 +159,33 @@ def convolute_and_sum(loadings, unit_response_functions=None):
 
 		print("Subset")
 		subset_start = arrow.utcnow()
-		current_year_loadings = annual_loadings[:, :, year]
+		current_year_loadings = loadings[year, :, :,]
 		subset_end = arrow.utcnow()
 		print(subset_end - subset_start)
 
-		print("Reshape")
-		reshape_start = arrow.utcnow()
-		reshaped_loadings = current_year_loadings.reshape(current_year_loadings.shape + (1,))
-		print(reshaped_loadings.shape)
+		#print("Reshape")
+		#reshape_start = arrow.utcnow()
+		#reshaped_loadings = current_year_loadings.reshape(current_year_loadings.shape)
+		#print(reshaped_loadings.shape)
 		#repeated_loadings = numpy.repeat(reshaped_loadings, URF_length, 2)
-		reshape_end = arrow.utcnow()
-		print(reshape_end - reshape_start)
+		#reshape_end = arrow.utcnow()
+		#print(reshape_end - reshape_start)
 
 		print("Multiply")
 		multiply_start = arrow.utcnow()
-		new_loadings = numpy.multiply(reshaped_loadings, unit_response_functions[:,:,:URF_length])
+		new_loadings = numpy.multiply(current_year_loadings, unit_response_functions[:URF_length, :, :])
 		multiply_end = arrow.utcnow()
 		print(multiply_end - multiply_start)
 
 		print("Add and Insert Back in")
 		add_start = arrow.utcnow()
-		numpy.add(output_matrix[:, :, year:], new_loadings, output_matrix[:, :, year:])
+		numpy.add(output_matrix[year:, :, : ], new_loadings, output_matrix[year:, :, : ])
 		add_end = arrow.utcnow()
 		print(add_end - add_start)
 		# multiply this year's matrix * URFs matrix sliced to represent size of future
 		# then add result to output_matrix
 
-	results = numpy.sum(output_matrix, [0,1])  # sum in 2D space
+	results = numpy.sum(output_matrix, [1, 2])  # sum in 2D space
 
 
 if __name__ == "__main__":
