@@ -1,3 +1,7 @@
+"""
+	TODO: Add issue about division by 100 in setup code
+"""
+
 import numpy
 import logging
 import sys
@@ -132,7 +136,41 @@ def make_annual_loadings(modifications, years=settings.NgwRasters.keys()):
 	return all_years_data
 
 
-def convolute_and_sum(loadings, unit_response_functions=None):
+def convolve_and_sum(loadings, unit_response_functions=None):
+	"""
+
+		:param loadings:
+		:param unit_response_functions: A 3D array where 2D represents space and the third represents "time into the future"
+										from any arbitrary year.
+		:return:
+	"""
+
+	loadings = loadings.T
+	print(loadings.shape)
+	print("Convolving")
+	if unit_response_functions is None:  # this logic is temporary, but have a safeguard so it's not accidentally used in production
+		if settings.DEBUG:
+			unit_response_functions = numpy.ones([loadings.shape[0], loadings.shape[1], loadings.shape[2]],
+												 dtype=numpy.float64)
+		else:
+			raise ValueError("Must provide Unit Response Functions!")
+
+	# output_matrix = numpy.zeros([loadings.shape[0], loadings.shape[1], loadings.shape[2]], dtype=numpy.float64)
+
+	x_length = loadings.shape[2]
+	y_length = loadings.shape[1]
+
+	start_time = arrow.utcnow()
+	for x in range(x_length):
+		for y in range(y_length):
+			loadings[:, y, x] = numpy.convolve(loadings[:, y, x], unit_response_functions[:, y, x], mode="same")
+
+	end_time = arrow.utcnow()
+	print("Convolution took {}".format(end_time-start_time))
+	return loadings
+
+
+def convolute_and_sum_slow(loadings, unit_response_functions=None):
 	"""
 
 	:param loadings:
@@ -191,5 +229,5 @@ def convolute_and_sum(loadings, unit_response_functions=None):
 if __name__ == "__main__":
 	annual_loadings = make_annual_loadings([])
 	print(annual_loadings.shape)
-	results = convolute_and_sum(annual_loadings,)
+	results = convolve_and_sum(annual_loadings,)
 	print(results)
