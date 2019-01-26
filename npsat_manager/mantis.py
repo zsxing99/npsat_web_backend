@@ -6,7 +6,6 @@ import numpy
 import logging
 import sys
 import os
-import threading
 
 import arcpy
 import arrow
@@ -158,37 +157,22 @@ def convolve_and_sum(loadings, unit_response_functions=None):
 	print("Convolving")
 	if unit_response_functions is None:  # this logic is temporary, but have a safeguard so it's not accidentally used in production
 		if settings.DEBUG:
-			unit_response_functions = numpy.ones([loadings.shape[0], loadings.shape[1], loadings.shape[2]],
-												 dtype=numpy.float64)
+			unit_response_functions = numpy.ones([loadings.shape[0], loadings.shape[1], loadings.shape[2]], dtype=numpy.float64)
 		else:
 			raise ValueError("Must provide Unit Response Functions!")
 
 	# output_matrix = numpy.zeros([loadings.shape[0], loadings.shape[1], loadings.shape[2]], dtype=numpy.float64)
 
-	def convolve(threadname, min_y=0, max_y=None):
+	x_length = loadings.shape[2]
+	y_length = loadings.shape[1]
 
-		x_length = loadings.shape[2]
-		if max_y:
-			y_length = max_y
-		else:
-			y_length = loadings.shape[1]
+	start_time = arrow.utcnow()
+	for x in range(x_length):
+		for y in range(y_length):
+			loadings[:, y, x] = numpy.convolve(loadings[:, y, x], unit_response_functions[:, y, x], mode="same")
 
-		start_time = arrow.utcnow()
-		for x in range(x_length):
-			for y in range(min_y, y_length):
-				loadings[:, y, x] = numpy.convolve(loadings[:, y, x], unit_response_functions[:, y, x], mode="same")
-
-		end_time = arrow.utcnow()
-		print("Convolution in {} took {}".format(threadname, end_time-start_time))
-
-	thread1 = threading.Thread(target=convolve, name="thread1", args=(0, int(loadings.shape[1]/2)))
-	thread2 = threading.Thread(target=convolve, name="thread2", args=(int(loadings.shape[1]/2),))
-	thread1.start()
-	thread1.run()
-	thread2.start()
-	thread2.run()
-	thread1.join()
-	thread2.join()
+	end_time = arrow.utcnow()
+	print("Convolution took {}".format(end_time-start_time))
 
 	results = numpy.sum(loadings, (1, 2))  # sum in 2D space
 	return results
