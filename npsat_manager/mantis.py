@@ -5,11 +5,18 @@
 import numpy
 import logging
 import sys
+import os
 
 import arcpy
 import arrow
 
+import django
+
+os.environ["DJANGO_SETTINGS_MODULE"] = "npsat_backend.settings"
+django.setup()
+
 from npsat_backend import settings
+from npsat_manager import models
 
 logging.basicConfig(stream=sys.stdout)
 log = logging.getLogger("npsat_manager.mantis")
@@ -167,7 +174,9 @@ def convolve_and_sum(loadings, unit_response_functions=None):
 
 	end_time = arrow.utcnow()
 	print("Convolution took {}".format(end_time-start_time))
-	return loadings
+
+	results = numpy.sum(loadings, (1, 2))  # sum in 2D space
+	return results
 
 
 def convolute_and_sum_slow(loadings, unit_response_functions=None):
@@ -227,7 +236,9 @@ def convolute_and_sum_slow(loadings, unit_response_functions=None):
 
 
 if __name__ == "__main__":
-	annual_loadings = make_annual_loadings([])
-	print(annual_loadings.shape)
+	start_time = arrow.utcnow()
+	annual_loadings = make_annual_loadings(modifications=models.Modification.objects.all())
 	results = convolve_and_sum(annual_loadings,)
 	print(results)
+	end_time = arrow.utcnow()
+	print("Total Process took {}".format(end_time-start_time))
