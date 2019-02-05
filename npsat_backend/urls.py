@@ -23,6 +23,7 @@ from npsat_manager import views
 router = routers.DefaultRouter()
 router.register(r'crops', views.CropViewSet)
 router.register(r'counties', views.CountyViewSet)
+router.register(r'model_run', views.ModelRunViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

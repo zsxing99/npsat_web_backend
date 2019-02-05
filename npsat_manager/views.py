@@ -4,6 +4,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.decorators import login_required
 
 from npsat_manager import serializers
 from npsat_manager import models
@@ -25,3 +26,11 @@ class CountyViewSet(viewsets.ModelViewSet):
 	"""
 	serializer_class = serializers.CountySerializer
 	queryset = models.County.objects.filter(active_in_npsat=True).order_by('name')
+
+
+class ModelRunViewSet(viewsets.ModelViewSet):
+	"""
+	API endpoint that allows listing of Counties
+	"""
+	serializer_class = serializers.RunResultSerializer
+	queryset = models.ModelRun.objects.filter().order_by('id')

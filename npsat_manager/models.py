@@ -1,6 +1,16 @@
-from django.db import models
+import traceback
+import logging
 
+from django.db import models
+from django.core.validators import int_list_validator
+from django.contrib.auth.models import User
+
+import arrow
 # Create your models here.
+
+from npsat_manager import mantis
+
+log = logging.getLogger("npsat.manager")
 
 
 class Crop(models.Model):
@@ -9,6 +19,7 @@ class Crop(models.Model):
 
 	def __str__(self):
 		return self.name
+
 
 class CropGroup(models.Model):
 	"""
@@ -61,7 +72,41 @@ class County(Area):
 #name = models.CharField(max_length=255)
 
 
+class ModelRun(models.Model):
+	complete = models.BooleanField(default=False)  # tracks if the model has actually been run for this result yet
+	status_message = models.CharField(max_length=2048)  # for status info or error messages
+	result_values = models.CharField(validators=[int_list_validator], max_length=4096)
+	date_run = models.DateTimeField()
+	user = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name="model_runs")
+	# modifications
+
+	def load_result(self, values):
+		self.result_values = ",".join([str(item) for item in values])
+		self.date_run = arrow.utcnow().datetime
+
+	def run(self):
+		"""
+			Runs Mantis and sets the status codes. Saves automatically at the end
+		:return:
+		"""
+		try:
+			results = mantis.run_mantis(self.modifications.all())
+			self.load_result(values=results)
+			self.complete = True
+			self.status_message = "Successfully run"
+		except:
+			log.error("Failed to run Mantis. Error was: {}".format(traceback.format_exc()))
+			self.complete = True
+			self.status_message = "Model run failed. This error has been reported."
+
+		self.save()
+
+
 class Modification(models.Model):
 	# run
 	crop = models.ForeignKey(Crop, on_delete=models.DO_NOTHING, related_name="modifications")
 	reduction = models.FloatField()
+
+	model_run = models.ForeignKey(ModelRun, on_delete=models.DO_NOTHING)
+
+

@@ -4,22 +4,18 @@
 
 import numpy
 import logging
-import sys
-import os
 
-import arcpy
 import arrow
-
-import django
-
-os.environ["DJANGO_SETTINGS_MODULE"] = "npsat_backend.settings"
-django.setup()
 
 from npsat_backend import settings
 from npsat_manager import models
 
-logging.basicConfig(stream=sys.stdout)
-log = logging.getLogger("npsat_manager.mantis")
+log = logging.getLogger("npsat.mantis")
+
+try:
+	import arcpy
+except ImportError:
+	log.warning("Can't import arcpy - won't be able to run Mantis - must fix this before attempting to run")
 
 earliest_data_year = 1945
 latest_data_year = 2050
@@ -239,10 +235,15 @@ def convolve_and_sum_slow(loadings, unit_response_functions=None):
 	results = numpy.sum(output_matrix, [1, 2])  # sum in 2D space
 
 
+def run_mantis(modifications):
+	annual_loadings = make_annual_loadings(modifications=modifications)
+	results = convolve_and_sum(annual_loadings,)
+	
+	return results
+
 if __name__ == "__main__":
 	start_time = arrow.utcnow()
-	annual_loadings = make_annual_loadings(modifications=models.Modification.objects.all())
-	results = convolve_and_sum(annual_loadings,)
+
 	print(results)
 	end_time = arrow.utcnow()
 	print("Total Process took {}".format(end_time-start_time))
