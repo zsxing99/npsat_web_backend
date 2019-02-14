@@ -1,5 +1,5 @@
 """
-WSGI config for untitled project.
+WSGI config for npsat_web_backend project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 

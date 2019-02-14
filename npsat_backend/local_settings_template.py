@@ -8,6 +8,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+SERVE_ADDRESS = "*:8010"  # what address and port should we serve the site on
+
 # EMAIL SENDING SETTINGS
 EMAIL_HOST = ''  # email server
 EMAIL_PORT = 587

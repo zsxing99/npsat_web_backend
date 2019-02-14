@@ -3,3 +3,4 @@ arrow
 djangorestframework
 django-cors-headers
 six
+waitress
