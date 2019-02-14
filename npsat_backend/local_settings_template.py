@@ -9,6 +9,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEBUG = False
 
 SERVE_ADDRESS = "*:8010"  # what address and port should we serve the site on
+ALLOWED_HOSTS = []
 
 # EMAIL SENDING SETTINGS
 EMAIL_HOST = ''  # email server

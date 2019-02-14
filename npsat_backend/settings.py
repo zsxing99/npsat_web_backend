@@ -14,9 +14,6 @@ from npsat_backend.local_settings import *
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 
-ALLOWED_HOSTS = ['127.0.0.1']
-
-
 # Application definition
 
 INSTALLED_APPS = [
