@@ -141,7 +141,7 @@ LOGGING = {
         'file_debug': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'debug.log'),
+            'filename': os.path.join(BASE_DIR, '..', 'logs', 'npsat_web_backend_debug.log'),
             'formatter': 'verbose'
         },
         'email_warn': {
