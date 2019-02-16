@@ -44,6 +44,6 @@ def enable_default_counties(enable_counties=("Tulare",)):
 	"""
 
 	for county in enable_counties:
-		update_county = models.County.objects.get(name="county")
+		update_county = models.County.objects.get(name=county)
 		update_county.active_in_npsat = True
 		update_county.save()
