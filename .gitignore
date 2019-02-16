@@ -2,6 +2,7 @@
 
 */local_settings.py  # always exclude local settings from git - can contain secrets
 .idea/*
+static/*
 
 ### Python template
 # Byte-compiled / optimized / DLL files
