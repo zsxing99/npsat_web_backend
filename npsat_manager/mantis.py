@@ -9,13 +9,9 @@ import arrow
 
 from npsat_backend import settings
 from npsat_manager import models
+from npsat_manager.support import compatibility
 
 log = logging.getLogger("npsat.mantis")
-
-try:
-	import arcpy
-except ImportError:
-	log.warning("Can't import arcpy - won't be able to run Mantis - must fix this before attempting to run")
 
 earliest_data_year = 1945
 latest_data_year = 2050
@@ -61,7 +57,7 @@ def make_weight_raster(land_use, modifications):
 	:param modifications: an iterable of npsat_manager.models.Modification objects
 	:return:
 	"""
-	land_use_array = arcpy.RasterToNumPyArray(arcpy.Raster(land_use), )
+	land_use_array = compatibility.raster_to_numpy_array(land_use)
 	land_use_array += 10000  # offset everything by 10000 so we can identify everything that's still a default later
 	for modification in modifications:
 		land_use_array[land_use_array == modification.crop.caml_code] = modification.reduction
@@ -111,7 +107,7 @@ def make_annual_loadings(modifications, years=settings.NgwRasters.keys()):
 	loadings = {}
 	for year in years:
 		print(year)
-		base_loading_matrix = arcpy.RasterToNumPyArray(arcpy.Raster(settings.NgwRasters[year]))
+		base_loading_matrix = compatibility.raster_to_numpy_array(settings.NgwRasters[year])
 		if year >= settings.ChangeYear:  # if this year is after our reductions are supposed to be made
 			weight_matrix = make_weight_raster(settings.LandUseRasters[year], modifications=modifications)
 			loadings[year] = weight_matrix * base_loading_matrix
