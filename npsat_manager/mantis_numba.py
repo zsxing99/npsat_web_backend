@@ -5,6 +5,8 @@
 import numpy
 import logging
 
+from numba import njit, jit
+
 import arrow
 
 from npsat_backend import settings
@@ -49,6 +51,7 @@ max_year = min_year + time_range
 	Then, when we're done, we just sum the raster band representing each year for our value.
 """
 
+@jit
 def make_weight_raster(land_use, modifications):
 	"""
 		Given a land use raster and a set of weights, applies the weights to each land use type
@@ -72,6 +75,7 @@ def run(spatial_subset="Tulare"):  # make sure to only run it for Tulare, which 
 	pass
 
 
+@jit
 def create_ranges_nd(start, stop, N, endpoint=True):
 	"""
 		Via https://stackoverflow.com/a/46694364 - for making in between matrices
@@ -99,6 +103,7 @@ def create_ranges_nd(start, stop, N, endpoint=True):
 	return start[..., None] + steps[..., None]*numpy.arange(N)
 
 
+@jit
 def make_annual_loadings(modifications, years=settings.NgwRasters.keys()):
 
 	# First make the loadings for just the years we have precalculated (1945, 1960, etc)
@@ -134,7 +139,7 @@ def make_annual_loadings(modifications, years=settings.NgwRasters.keys()):
 
 	return all_years_data
 
-
+@njit
 def convolve_and_sum(loadings, unit_response_functions=None):
 	"""
 
@@ -150,30 +155,38 @@ def convolve_and_sum(loadings, unit_response_functions=None):
 	loadings = loadings.T
 	print(loadings.shape)
 	print("Convolving")
-	if unit_response_functions is None:  # this logic is temporary, but have a safeguard so it's not accidentally used in production
-		if settings.DEBUG:
-			unit_response_functions = numpy.ones((loadings.shape[0], loadings.shape[1], loadings.shape[2]), dtype=numpy.float64)
-		else:
-			raise ValueError("Must provide Unit Response Functions!")
+	#if unit_response_functions is None:  # this logic is temporary, but have a safeguard so it's not accidentally used in production
+	#	if settings.DEBUG:
+	unit_response_functions = numpy.ones((loadings.shape[0], loadings.shape[1], loadings.shape[2]), dtype=numpy.float64)
+	#	else:
+	#		raise ValueError("Must provide Unit Response Functions!")
 
 	# output_matrix = numpy.zeros([loadings.shape[0], loadings.shape[1], loadings.shape[2]], dtype=numpy.float64)
 	print("Fake URFs made, convolving")
 	x_length = loadings.shape[2]
 	y_length = loadings.shape[1]
 
-	start_time = arrow.utcnow()
+	#start_time = arrow.utcnow()
 	for x in range(x_length):
 		for y in range(y_length):
-			loadings[:, y, x] = numpy.convolve(loadings[:, y, x], unit_response_functions[:, y, x], mode="same")
+			output = numpy.convolve(loadings[:, y, x], unit_response_functions[:, y, x])  #, mode="same")
 
-	end_time = arrow.utcnow()
-	print("Convolution took {}".format(end_time-start_time))
+	#end_time = arrow.utcnow()
+	#print("Convolution took {}".format(end_time-start_time))
 	print("Done convolving, summing")
-	results = loadings.sum(axis=(1, 2))  # sum in 2D space
+	results = loadings.sum()  # axis=(1, 2))  # sum in 2D space
 	print("Done summing")
 	return results
 
+@njit
+def numba_convolve_repr():
+	l1 = [1,2,3,4,5,6,7]
+	l2 = [10,11,12,13,14,15,16]
+	a1 = numpy.asarray(l1)
+	a2 = numpy.asarray(l2)
+	return numpy.convolve(a1,a2)
 
+@jit
 def convolve_and_sum_slow(loadings, unit_response_functions=None):
 	"""
 		This was the first version of the convolution function I wrote. It takes an approach I thought would be
