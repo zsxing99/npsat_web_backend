@@ -39,15 +39,21 @@ class Area(models.Model):
 		Used for the various location models - this will let us have a groupings class
 		that can be used for any of the locations
 	"""
-	npsat_id = models.IntegerField(null=True)
+	mantis_id = models.IntegerField(null=True)
 	name = models.CharField(max_length=255)
-	active_in_npsat = models.BooleanField(default=False)  # Is this region actually ready to be selected?
+	active_in_mantis = models.BooleanField(default=False)  # Is this region actually ready to be selected?
 
 	class Meta:
 		abstract = True
 
 	def __str__(self):
 		return self.name
+
+class SubBasin(Area):
+	subbasin_id = models.IntegerField()
+
+class CVHMFarm(Area):
+	farm_id = models.IntegerField()
 
 
 class B118Basin(Area):
@@ -60,7 +66,6 @@ class B118Basin(Area):
 class County(Area):
 	ab_code = models.CharField(max_length=4)
 	ansi_code = models.CharField(max_length=3)
-
 
 #class AreaGroup(models.Model):
 """
@@ -79,6 +84,7 @@ class ModelRun(models.Model):
 	date_run = models.DateTimeField()
 	user = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name="model_runs")
 	# modifications
+	area = models.ForeignKey(Area, on_delete=models.DO_NOTHING, related_name="model_runs")
 
 	def load_result(self, values):
 		self.result_values = ",".join([str(item) for item in values])
@@ -105,7 +111,7 @@ class ModelRun(models.Model):
 class Modification(models.Model):
 	# run
 	crop = models.ForeignKey(Crop, on_delete=models.DO_NOTHING, related_name="modifications")
-	reduction = models.FloatField()
+	proportion = models.FloatField()  # the amount, relative to 2020 of nitrogen applied on these crops - 0 to 1
 
 	model_run = models.ForeignKey(ModelRun, on_delete=models.DO_NOTHING)
 
