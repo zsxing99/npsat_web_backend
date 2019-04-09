@@ -45,7 +45,7 @@ class MantisManager(object):
 
 		area_type_id = self.area_map_id[type(area)]  # we key the ids based on the class being used - this is clunky, but efficient
 		area_subitem_id = area.mantis_id if area_type_id > 1 else ""  # make it an empty string for central valley
-		number_of_records = len(modifications)  # len can be slow, but it'll cache the models for us for later
+		number_of_records = len(modifications)  # len can be slow with Django, but it'll cache the models for us for later
 		with open(INPUT_FILENAME, 'w') as mantis_input:
 			mantis_input.write("{} {}").format(area_type_id, area_subitem_id)
 			mantis_input.write(str(number_of_records))

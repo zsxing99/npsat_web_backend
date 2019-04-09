@@ -25,13 +25,25 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'npsat_manager',
     'rest_framework',
-    'rest_framework.authtoken'
+    'rest_framework.authtoken',
 ]
 
 if DEBUG:
     INSTALLED_APPS += ('corsheaders', )
 
 CORS_ORIGIN_ALLOW_ALL = DEBUG
+CORS_ORIGIN_WHITELIST = (
+    'npsat.watershed.ucdavis.edu',
+    'npsat.watershed.ucdavis.edu:8000',
+    'npsat.watershed.ucdavis.edu:8010',
+    'npsat.watershed.ucdavis.edu:8009',
+    '127.0.0.1',
+    '127.0.0.1:8000',
+    '127.0.0.1:8080',
+    'localhost',
+    'localhost:8000',
+    'localhost:8080',
+)
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [

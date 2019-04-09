@@ -22,10 +22,10 @@ class CropViewSet(viewsets.ModelViewSet):
 
 class CountyViewSet(viewsets.ModelViewSet):
 	"""
-	API endpoint that allows listing of Counties
+		API endpoint that allows listing of Counties
 	"""
 	serializer_class = serializers.CountySerializer
-	queryset = models.County.objects.filter(active_in_npsat=True).order_by('name')
+	queryset = models.County.objects.filter(active_in_mantis=True).order_by('name')
 
 
 class ModelRunViewSet(viewsets.ModelViewSet):

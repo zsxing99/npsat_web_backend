@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 import arrow
 # Create your models here.
 
-from npsat_manager import mantis
+from npsat_manager import mantis_manager
 
 log = logging.getLogger("npsat.manager")
 
@@ -78,13 +78,13 @@ class County(Area):
 
 
 class ModelRun(models.Model):
-	complete = models.BooleanField(default=False)  # tracks if the model has actually been run for this result yet
-	status_message = models.CharField(max_length=2048)  # for status info or error messages
-	result_values = models.CharField(validators=[int_list_validator], max_length=4096)
-	date_run = models.DateTimeField()
+	complete = models.BooleanField(default=False, null=True)  # tracks if the model has actually been run for this result yet
+	status_message = models.CharField(max_length=2048, default="", null=True)  # for status info or error messages
+	result_values = models.CharField(validators=[int_list_validator], max_length=4096, default="", null=True)
+	date_run = models.DateTimeField(default=arrow.utcnow().datetime, null=True)
 	user = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name="model_runs")
+	county = models.ForeignKey(County, on_delete=models.DO_NOTHING, related_name="model_runs")
 	# modifications
-	area = models.ForeignKey(Area, on_delete=models.DO_NOTHING, related_name="model_runs")
 
 	def load_result(self, values):
 		self.result_values = ",".join([str(item) for item in values])
@@ -96,7 +96,8 @@ class ModelRun(models.Model):
 		:return:
 		"""
 		try:
-			results = mantis.run_mantis(self.modifications.all())
+			# TODO: Fix below
+			results = None #mantis.run_mantis(self.modifications.all())
 			self.load_result(values=results)
 			self.complete = True
 			self.status_message = "Successfully run"
@@ -113,6 +114,6 @@ class Modification(models.Model):
 	crop = models.ForeignKey(Crop, on_delete=models.DO_NOTHING, related_name="modifications")
 	proportion = models.FloatField()  # the amount, relative to 2020 of nitrogen applied on these crops - 0 to 1
 
-	model_run = models.ForeignKey(ModelRun, on_delete=models.DO_NOTHING)
+	model_run = models.ForeignKey(ModelRun, on_delete=models.DO_NOTHING, related_name="modifications")
 
 
