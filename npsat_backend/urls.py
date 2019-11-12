@@ -20,10 +20,12 @@ from django.conf.urls import url, include
 from rest_framework import routers
 from npsat_manager import views
 
+# set up DRF
 router = routers.DefaultRouter()
 router.register(r'crops', views.CropViewSet)
-router.register(r'counties', views.CountyViewSet)
-router.register(r'model_run', views.ModelRunViewSet)
+router.register(r'county', views.CountyViewSet)
+router.register(r'model_run', views.ModelRunViewSet, basename="ModelRun")
+router.register(r'modification', views.ModificationViewSet, basename="Modification")
 
 urlpatterns = [
     path('admin/', admin.site.urls),

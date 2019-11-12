@@ -1,16 +1,26 @@
 import traceback
 import logging
+import asyncio
 
+import django
 from django.db import models
 from django.core.validators import int_list_validator
 from django.contrib.auth.models import User
 
 import arrow
+
+from npsat_backend import settings
 # Create your models here.
 
-from npsat_manager import mantis_manager
-
 log = logging.getLogger("npsat.manager")
+
+mantis_area_map_id = {
+			"npsat_manager.models.CentralValley": 1,
+			"npsat_manager.models.SubBasin": 2,
+			"npsat_manager.models.CVHMFarm": 3,
+			"npsat_manager.models.B118Basin": 4,
+			"npsat_manager.models.County": 5,
+}
 
 
 class Crop(models.Model):
@@ -78,12 +88,16 @@ class County(Area):
 
 
 class ModelRun(models.Model):
-	complete = models.BooleanField(default=False, null=True)  # tracks if the model has actually been run for this result yet
-	status_message = models.CharField(max_length=2048, default="", null=True)  # for status info or error messages
-	result_values = models.CharField(validators=[int_list_validator], max_length=4096, default="", null=True)
-	date_run = models.DateTimeField(default=arrow.utcnow().datetime, null=True)
+	ready = models.BooleanField(default=False, null=False)  # marked after the web interface adds all modifications
+	running = models.BooleanField(default=False, null=False)  # marked while in processing
+	complete = models.BooleanField(default=False, null=False)  # tracks if the model has actually been run for this result yet
+	status_message = models.CharField(max_length=2048, default="", null=True, blank=True)  # for status info or error messages
+	result_values = models.CharField(validators=[int_list_validator], max_length=4096, default="", null=True, blank=True)
+	date_run = models.DateTimeField(default=django.utils.timezone.now, null=True)
 	user = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name="model_runs")
-	county = models.ForeignKey(County, on_delete=models.DO_NOTHING, related_name="model_runs")
+
+	# when null, run whole central valley
+	county = models.ForeignKey(County, null=True, blank=True, on_delete=models.DO_NOTHING, related_name="model_runs")
 	# modifications
 
 	def load_result(self, values):
@@ -110,10 +124,68 @@ class ModelRun(models.Model):
 
 
 class Modification(models.Model):
-	# run
+	class Meta:
+		unique_together = ['model_run', 'crop']
+
 	crop = models.ForeignKey(Crop, on_delete=models.DO_NOTHING, related_name="modifications")
 	proportion = models.FloatField()  # the amount, relative to 2020 of nitrogen applied on these crops - 0 to 1
 
-	model_run = models.ForeignKey(ModelRun, on_delete=models.DO_NOTHING, related_name="modifications")
+	model_run = models.ForeignKey(ModelRun, null=True, blank=True, on_delete=models.CASCADE, related_name="modifications")
 
 
+class MantisServer(models.Model):
+	"""
+		We can configure a server pool by instantiating different versions of this model. On startup, a function willl
+		trigger each instance to determine if it is online and available, at which point when we go to send out tasks,
+		it will be available for use.
+	"""
+
+	host = models.CharField(max_length=255)
+	port = models.PositiveSmallIntegerField(default=1234)
+	online = models.BooleanField(default=False)
+
+	async def get_status(self):
+		stream_reader, stream_writer = asyncio.open_connection(self.host, self.port)
+		stream_writer.write(settings.MANTIS_STATUS_MESSAGE)
+		await stream_writer.drain()
+
+		response = stream_reader.read()  # waits for an "EOF"
+		log.debug("Mantis server at {}:{} responded {}".format(self.host, self.port, response))
+		if response == settings.MANTIS_STATUS_RESPONSE:
+			self.online = True
+		else:
+			self.online = False
+		self.save()
+
+	def startup(self):
+		self.get_status()  # saves the object once it determines if the server is online
+
+	async def send_command(self, model_run: ModelRun):
+		"""
+			Sends commands to MantisServer and loads results back
+		:param model_run:
+		:return:
+		"""
+		area = model_run.area
+		modifications = model_run.modifications
+
+		area_type_id = mantis_area_map_id[type(area)]  # we key the ids based on the class being used - this is clunky, but efficient
+		area_subitem_id = area.mantis_id if area_type_id > 1 else ""  # make it an empty string for central valley
+		number_of_records = len(modifications)  # len can be slow with Django, but it'll cache the models for us for later
+
+		mantis_reader, mantis_writer = asyncio.open_connection(self.host, self.port)
+
+		# sent the command to the server
+		mantis_writer.write("{} {}").format(area_type_id, area_subitem_id)
+		mantis_writer.write(" {} {}".format(str(number_of_records), settings.ChangeYear))
+		for modification in modifications.objects.all():
+			mantis_writer.write(" {} {}".format(modification.crop.caml_code, modification.proportion))
+		mantis_writer.write("\n")
+
+		await mantis_writer.drain()  # make sure the full command is sent before proceeding with this function
+
+		results = mantis_reader.read()  # basically, wait for the EOF signal
+		model_run.result_values = results
+		model_run.complete = True
+		model_run.running = False
+		model_run.save()

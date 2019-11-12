@@ -33,16 +33,20 @@ if DEBUG:
 
 CORS_ORIGIN_ALLOW_ALL = DEBUG
 CORS_ORIGIN_WHITELIST = (
-    'npsat.watershed.ucdavis.edu',
-    'npsat.watershed.ucdavis.edu:8000',
-    'npsat.watershed.ucdavis.edu:8010',
-    'npsat.watershed.ucdavis.edu:8009',
-    '127.0.0.1',
-    '127.0.0.1:8000',
-    '127.0.0.1:8080',
-    'localhost',
-    'localhost:8000',
-    'localhost:8080',
+    'http://npsat.watershed.ucdavis.edu',
+    'https://npsat.watershed.ucdavis.edu',
+    'http://npsat.watershed.ucdavis.edu:8000',
+    'https://npsat.watershed.ucdavis.edu:8000',
+    'http://npsat.watershed.ucdavis.edu:8010',
+    'https://npsat.watershed.ucdavis.edu:8010',
+    'http://npsat.watershed.ucdavis.edu:8009',
+    'https://npsat.watershed.ucdavis.edu:8009',
+    'http://127.0.0.1',
+    'http://127.0.0.1:8000',
+    'http://127.0.0.1:8080',
+    'http://localhost',
+    'http://localhost:8000',
+    'http://localhost:8080',
 )
 
 REST_FRAMEWORK = {
@@ -133,6 +137,23 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+# The following code block sets it up to not email when DEBUG is on, assuming we'll see it. If DEBUG is off, then it will email too.
+EMAIL_WHEN_DEBUG_ON = False
+if (EMAIL_WHEN_DEBUG_ON and DEBUG) or not DEBUG:
+    EMAIL_DEBUG_HANDLER = {
+        'email_warn': {
+            'level': "WARNING",
+            'class': "django.utils.log.AdminEmailHandler",
+        },
+        'email_error': {
+            'level': "ERROR",
+            'class': "django.utils.log.AdminEmailHandler"
+        }
+    }
+    EMAIL_HANDLERS = ['email_error', 'email_warn']
+else:
+    EMAIL_DEBUG_HANDLER = {}
+    EMAIL_HANDLERS = []
 
 LOGGING = {
     'version': 1,
@@ -157,24 +178,16 @@ LOGGING = {
             'filename': os.path.join(LOGGING_FOLDER, 'npsat_web_backend_debug.log'),
             'formatter': 'verbose'
         },
-        'email_warn': {
-            'level': "WARNING",
-            'class': "django.utils.log.AdminEmailHandler",
-        },
-        'email_error': {
-            'level': "ERROR",
-            'class': "django.utils.log.AdminEmailHandler"
-        },
+        **EMAIL_DEBUG_HANDLER
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file_debug', 'email_error', 'email_warn'],
+            'handlers': ['console', 'file_debug'] + EMAIL_HANDLERS,
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
         },
         'npsat': {
-            'handlers': ['console', 'file_debug', 'email_error', 'email_warn'],
+            'handlers': ['console', 'file_debug'] + EMAIL_HANDLERS,
             'level': 'DEBUG'
         },
     },
-
 }

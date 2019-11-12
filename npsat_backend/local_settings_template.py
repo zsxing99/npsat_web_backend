@@ -25,7 +25,6 @@ WARN_EMAILS = []  # Add ('Name', 'email') tuples here and next line for warnings
 ERROR_EMAILS = []
 ADMINS = ERROR_EMAILS
 
-
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
@@ -35,6 +34,9 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+
+MANTIS_STATUS_MESSAGE = "status"
+MANTIS_STATUS_RESPONSE = "online"
 
 StartYear = 1945  # When to start the curves off
 EndYear = 2065  # What's the max year to calculate until?

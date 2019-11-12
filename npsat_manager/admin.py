@@ -2,8 +2,21 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import County, Crop, CropGroup
+from . import models
 
-admin.site.register(County)
-admin.site.register(Crop)
-admin.site.register(CropGroup)
+admin.site.register(models.County)
+admin.site.register(models.Crop)
+admin.site.register(models.CropGroup)
+admin.site.register(models.MantisServer)
+
+
+class ModelRunModificationInline(admin.TabularInline):
+    model = models.Modification
+
+
+class ModelRunAdmin(admin.ModelAdmin):
+    inlines = [ModelRunModificationInline]
+
+
+admin.site.register(models.ModelRun, ModelRunAdmin)
+admin.site.register(models.Modification)

@@ -1,63 +1,31 @@
+from django.core.exceptions import PermissionDenied, ValidationError
+
 from rest_framework import serializers
 
 from npsat_manager import models
 
 
-class CropSerializer(serializers.HyperlinkedModelSerializer):
+class CropSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = models.Crop
 		fields = ('id', 'name',)
 
 
-class CountySerializer(serializers.HyperlinkedModelSerializer):
+class CountySerializer(serializers.ModelSerializer):
 	class Meta:
 		model = models.County
 		fields = ('id', 'ab_code', 'ansi_code', 'name', 'mantis_id')
 
 
-#class ModificationSerializer(serializers.HyperlinkedModelSerializer):
-#	crop = CropSerializer(read_only=True)
-#	model_run = RunResultSerializer()
-#	class Meta:
-#		model = models.Modification
-#		fields = ('crop', 'proportion', 'model_run')
-
-
-class ModificationField(serializers.RelatedField):
-	def to_representation(self, obj):
-		return {
-			'id': obj.id,
-			'crop': obj.crop.name,
-			'crop_id': obj.crop.id,
-			'model_run': obj.model_run.id,
-			'proportion': obj.proportion,
-		}
-
-	def to_internal_value(self, data):
-		try:
-			try:
-				if 'id' in data:
-					return models.Modification.objects.get(id=data['id'])
-			except ValueError:
-				raise serializers.ValidationError(
-					'id must be an integer.'
-				)
-		except models.Modification.DoesNotExist:
-			raise serializers.ValidationError(
-				'Modification does not exist.'
-			)
-
-
 class RunResultSerializer(serializers.ModelSerializer):
-	modifications = serializers.RelatedField(many=True, queryset=models.Modification.objects.all())
-	county = CountySerializer(read_only=True)
+	#modifications = serializers.RelatedField(many=True, queryset=models.Modification.objects.all())
+	#county = CountySerializer(read_only=True)
 
 	class Meta:
 		model = models.ModelRun
-		fields = ('id', 'county', 'modifications', 'result_values', 'date_run', 'complete', 'status_message')
+		fields = ('id', 'user', 'county', 'modifications', 'result_values', 'date_run', 'ready', 'complete', 'running', 'status_message')
 
 	def validate(self, data):
-		print(data)
 		return data
 
 	#def create(self, validated_data):
@@ -75,3 +43,31 @@ class RunResultSerializer(serializers.ModelSerializer):
 	#		crop = models.Crop.objects.get(name=modification['name'])
 	#		mod_object = models.Modification.objects.create(model_run=model_run, crop=crop, proportion=modification.proportion)
 	#		mod_object.save()
+
+
+class ModificationSerializer(serializers.ModelSerializer):
+	#crop = CropSerializer(read_only=True)
+	#model_run = RunResultSerializer()
+
+	class Meta:
+		model = models.Modification
+		fields = ('crop', 'proportion', 'model_run')
+
+	def validate(self, data):
+
+		# check that the user making this modification actually has permission to attach it to the specified model run.
+		request = self.context.get("request")
+		if request and hasattr(request, "user"):
+			user = request.user
+		else:
+			raise PermissionDenied("No User attached to this request - can't modify")
+
+		print(user)
+		model_run = data.get('model_run')
+		print(model_run)
+		print(model_run.user_id)
+
+		if user != model_run.user:
+			raise PermissionDenied("You don't have permission to attach modifications to this model run")
+
+		return data
