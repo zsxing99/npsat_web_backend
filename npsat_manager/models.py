@@ -7,6 +7,8 @@ from django.db import models
 from django.core.validators import int_list_validator
 from django.contrib.auth.models import User
 
+from asgiref.sync import sync_to_async
+
 import arrow
 
 from npsat_backend import settings
@@ -158,9 +160,10 @@ class MantisServer(models.Model):
 		self.save()
 
 	def startup(self):
-		self.get_status()  # saves the object once it determines if the server is online
+		pass
+		#self.get_status()  # saves the object once it determines if the server is online
 
-	async def send_command(self, model_run: ModelRun):
+	def send_command(self, model_run: ModelRun):
 		"""
 			Sends commands to MantisServer and loads results back
 		:param model_run:
@@ -173,19 +176,22 @@ class MantisServer(models.Model):
 		area_subitem_id = area.mantis_id if area_type_id > 1 else ""  # make it an empty string for central valley
 		number_of_records = len(modifications)  # len can be slow with Django, but it'll cache the models for us for later
 
+		log.debug("Connecting to server to send command")
 		mantis_reader, mantis_writer = asyncio.open_connection(self.host, self.port)
+		log.debug("Connected successfully")
 
 		# sent the command to the server
-		mantis_writer.write("{} {}").format(area_type_id, area_subitem_id)
+		mantis_writer.write("C2VSIM_99_09")
+		mantis_writer.write(" 1 0") # .format(area_type_id, area_subitem_id)
 		mantis_writer.write(" {} {}".format(str(number_of_records), settings.ChangeYear))
 		for modification in modifications.objects.all():
 			mantis_writer.write(" {} {}".format(modification.crop.caml_code, modification.proportion))
 		mantis_writer.write("\n")
 
-		await mantis_writer.drain()  # make sure the full command is sent before proceeding with this function
+		mantis_writer.drain()  # make sure the full command is sent before proceeding with this function
 
 		results = mantis_reader.read()  # basically, wait for the EOF signal
 		model_run.result_values = results
 		model_run.complete = True
 		model_run.running = False
-		model_run.save()
+		#model_run.save()
