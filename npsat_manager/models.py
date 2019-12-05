@@ -1,6 +1,7 @@
 import traceback
 import logging
 import asyncio
+import socket
 
 import django
 from django.db import models
@@ -95,7 +96,8 @@ class ModelRun(models.Model):
 	complete = models.BooleanField(default=False, null=False)  # tracks if the model has actually been run for this result yet
 	status_message = models.CharField(max_length=2048, default="", null=True, blank=True)  # for status info or error messages
 	result_values = models.CharField(validators=[int_list_validator], max_length=4096, default="", null=True, blank=True)
-	date_run = models.DateTimeField(default=django.utils.timezone.now, null=True)
+	date_submitted = models.DateTimeField(default=django.utils.timezone.now, null=True, blank=True)
+	date_completed = models.DateTimeField(null=True, blank=True)
 	user = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name="model_runs")
 
 	# when null, run whole central valley
@@ -169,20 +171,23 @@ class MantisServer(models.Model):
 		:param model_run:
 		:return:
 		"""
-		area = model_run.area
+		# area = model_run.area
 		modifications = model_run.modifications
 
-		area_type_id = mantis_area_map_id[type(area)]  # we key the ids based on the class being used - this is clunky, but efficient
-		area_subitem_id = area.mantis_id if area_type_id > 1 else ""  # make it an empty string for central valley
-		number_of_records = len(modifications)  # len can be slow with Django, but it'll cache the models for us for later
+		#area_type_id = mantis_area_map_id[type(area)]  # we key the ids based on the class being used - this is clunky, but efficient
+		#area_subitem_id = area.mantis_id if area_type_id > 1 else ""  # make it an empty string for central valley
+		number_of_records = len(modifications.all())  # len can be slow with Django, but it'll cache the models for us for later
 
 		log.debug("Connecting to server to send command")
+		self._non_async_send(model_run, number_of_records, modifications)
+		return
+
 		mantis_reader, mantis_writer = asyncio.open_connection(self.host, self.port)
 		log.debug("Connected successfully")
 
 		# sent the command to the server
 		mantis_writer.write("C2VSIM_99_09")
-		mantis_writer.write(" 1 0") # .format(area_type_id, area_subitem_id)
+		mantis_writer.write(" 1 0")  # .format(area_type_id, area_subitem_id)
 		mantis_writer.write(" {} {}".format(str(number_of_records), settings.ChangeYear))
 		for modification in modifications.objects.all():
 			mantis_writer.write(" {} {}".format(modification.crop.caml_code, modification.proportion))
@@ -195,3 +200,29 @@ class MantisServer(models.Model):
 		model_run.complete = True
 		model_run.running = False
 		#model_run.save()
+
+	def _non_async_send(self, model_run, number_of_records, modifications):
+		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		s.connect((self.host, self.port))
+		# mantis_reader, mantis_writer = asyncio.open_connection(server.host, server.port)
+		# log.debug("Connected successfully")
+
+		# sent the command to the server
+		s.send(b"C2VSIM_99_09")
+		s.send(b" 1 0")  # .format(area_type_id, area_subitem_id)
+		s.send(" {} {}".format(number_of_records, settings.ChangeYear).encode('utf-8'))
+		for modification in modifications.all():
+			s.send(" {} {}".format(modification.crop.caml_code, modification.proportion).encode('utf-8'))
+		s.send(b"\n")
+
+		# s.flush()
+		# mantis_writer.drain()  # make sure the full command is sent before proceeding with this function
+
+		results = s.recv(999999)  # basically, wait for the EOF signal
+		model_run.result_values = results
+		model_run.complete = True
+		model_run.running = False
+		model_run.date_completed = arrow.utcnow().datetime
+		model_run.save()
+
+		log.info("Results saved")

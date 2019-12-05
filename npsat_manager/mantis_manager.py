@@ -104,6 +104,14 @@ def initialize():
 
 
 async def main_model_run_loop(mantis_servers):
+	"""
+		We're going to ignore this now and just use our single Mantis Server - since it'd require refactoring this
+		to support Django, or migrating to Celery + Message Broker, let's not at the moment since we don't have a
+		reason to believe we'd need it just yet. We can engineer that in without too much difficulty later. For now,
+		we already have code that loads run info to a DB and code that can send commands to a Mantis Server. Let's just
+		refactor the process_runs code to not be async and ignore this module so that we can process single runs
+		at a time.
+	"""
 	# Now we can actually begin the work of passing information
 	# start up a new queue
 	q = asyncio.Queue()
