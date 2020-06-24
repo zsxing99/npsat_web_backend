@@ -3,7 +3,7 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.permissions import BasePermission, IsAdminUser, SAFE_METHODS
+from rest_framework.permissions import BasePermission, IsAuthenticated, IsAdminUser, SAFE_METHODS
 from rest_framework import generics
 from django.contrib.auth.decorators import login_required
 
@@ -20,7 +20,11 @@ class ReadOnly(BasePermission):
 
 class CropViewSet(viewsets.ModelViewSet):
 	"""
-	API endpoint that allows listing of crops
+	Crop Names and Codes
+
+	Permissions: IsAdminUser | ReadOnly (Admin users can do all operations, others can use HEAD and GET)
+
+
 	"""
 	permission_classes = [IsAdminUser | ReadOnly]  # Admin users can do any operation, others, can read from the API, but not write
 
@@ -31,6 +35,8 @@ class CropViewSet(viewsets.ModelViewSet):
 class CountyViewSet(viewsets.ModelViewSet):
 	"""
 		API endpoint that allows listing of Counties
+
+		Permissions: IsAdminUser | ReadOnly (Admin users can do all operations, others can use HEAD and GET)
 	"""
 	permission_classes = [IsAdminUser | ReadOnly]  # Admin users can do any operation, others, can read from the API, but not write
 
@@ -40,8 +46,14 @@ class CountyViewSet(viewsets.ModelViewSet):
 
 class ModelRunViewSet(viewsets.ModelViewSet):
 	"""
-	API endpoint that allows listing of Modifications
+	Create, List, and Modify Model Runs
+
+	Test
+
+	Permissions: Must be authenticated
 	"""
+	permission_classes = [IsAuthenticated]
+
 	serializer_class = serializers.RunResultSerializer
 
 	def get_queryset(self):
@@ -51,7 +63,11 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 class ModificationViewSet(viewsets.ModelViewSet):
 	"""
 	API endpoint that allows listing of Modifications
+
+	Permissions: Must be authenticated
 	"""
+	permission_classes = [IsAuthenticated]
+
 	serializer_class = serializers.ModificationSerializer
 
 	def get_queryset(self):

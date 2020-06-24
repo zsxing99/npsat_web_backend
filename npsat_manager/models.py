@@ -18,11 +18,11 @@ from npsat_backend import settings
 log = logging.getLogger("npsat.manager")
 
 mantis_area_map_id = {
-			"npsat_manager.models.CentralValley": 1,
-			"npsat_manager.models.SubBasin": 2,
-			"npsat_manager.models.CVHMFarm": 3,
-			"npsat_manager.models.B118Basin": 4,
-			"npsat_manager.models.County": 5,
+			"CentralValley": 1,
+			"SubBasin": 2,
+			"CVHMFarm": 5,
+			"B118Basin": 4,
+			"County": 3,
 }
 
 
@@ -62,8 +62,10 @@ class Area(models.Model):
 	def __str__(self):
 		return self.name
 
+
 class SubBasin(Area):
 	subbasin_id = models.IntegerField()
+
 
 class CVHMFarm(Area):
 	farm_id = models.IntegerField()
@@ -91,18 +93,44 @@ class County(Area):
 
 
 class ModelRun(models.Model):
+	"""
+		The central object for configuring an individual run of the model - is related to modification objects from the
+		modification side.
+	"""
 	ready = models.BooleanField(default=False, null=False)  # marked after the web interface adds all modifications
 	running = models.BooleanField(default=False, null=False)  # marked while in processing
 	complete = models.BooleanField(default=False, null=False)  # tracks if the model has actually been run for this result yet
 	status_message = models.CharField(max_length=2048, default="", null=True, blank=True)  # for status info or error messages
-	result_values = models.CharField(validators=[int_list_validator], max_length=4096, default="", null=True, blank=True)
+	result_values = models.TextField(validators=[int_list_validator], default="", null=True, blank=True)
 	date_submitted = models.DateTimeField(default=django.utils.timezone.now, null=True, blank=True)
 	date_completed = models.DateTimeField(null=True, blank=True)
 	user = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name="model_runs")
 
 	# when null, run whole central valley
 	county = models.ForeignKey(County, null=True, blank=True, on_delete=models.DO_NOTHING, related_name="model_runs")
-	# modifications
+	b118_basin = models.ForeignKey(B118Basin, null=True, blank=True, on_delete=models.DO_NOTHING, related_name="model_runs")
+	cvhm_farm = models.ForeignKey(CVHMFarm, null=True, blank=True, on_delete=models.DO_NOTHING, related_name="model_runs")
+	subbasin = models.ForeignKey(SubBasin, null=True, blank=True, on_delete=models.DO_NOTHING, related_name="model_runs")
+
+	# modifications - backward relationship
+
+	def get_area_to_run(self):
+		"""
+			Returns a two-tuple of items to area id, subarea_id to pass to the mantis server
+		"""
+		area = None
+		possible_areas = ("county", "b118_basin", "cvhm_farm", "subbasin")
+		for area_value in possible_areas:
+			possible_area = getattr(self, area_value)
+			if possible_area is not None:
+				area = possible_area
+				break
+		else:
+			return 1, 0  # 1 is central valley, 0 is because there's no subitem
+
+		area_type_id = mantis_area_map_id[type(area).__name__]  # we key the ids based on the class being used - this is clunky, but efficient
+
+		return area_type_id, area.mantis_id
 
 	def load_result(self, values):
 		self.result_values = ",".join([str(item) for item in values])
@@ -115,7 +143,7 @@ class ModelRun(models.Model):
 		"""
 		try:
 			# TODO: Fix below
-			results = None #mantis.run_mantis(self.modifications.all())
+			results = None  # mantis.run_mantis(self.modifications.all())
 			self.load_result(values=results)
 			self.complete = True
 			self.status_message = "Successfully run"
@@ -165,61 +193,53 @@ class MantisServer(models.Model):
 		pass
 		#self.get_status()  # saves the object once it determines if the server is online
 
-	def send_command(self, model_run: ModelRun):
+	def send_command(self, model_run: ModelRun, scenario="CVHM_95_99"):
 		"""
 			Sends commands to MantisServer and loads results back
 		:param model_run:
 		:return:
 		"""
-		# area = model_run.area
+		model_run.running = True
+		model_run.save()
 		modifications = model_run.modifications
 
-		#area_type_id = mantis_area_map_id[type(area)]  # we key the ids based on the class being used - this is clunky, but efficient
-		#area_subitem_id = area.mantis_id if area_type_id > 1 else ""  # make it an empty string for central valley
 		number_of_records = len(modifications.all())  # len can be slow with Django, but it'll cache the models for us for later
 
 		log.debug("Connecting to server to send command")
-		self._non_async_send(model_run, number_of_records, modifications)
-		return
+		try:
+			self._non_async_send(model_run, number_of_records, modifications, scenario)
+		except:
+			# on any exception, reset the state of this model run so it will be picked up again later
+			model_run.running = False
+			model_run.complete = False
+			model_run.save()
+			raise
 
-		mantis_reader, mantis_writer = asyncio.open_connection(self.host, self.port)
-		log.debug("Connected successfully")
-
-		# sent the command to the server
-		mantis_writer.write("C2VSIM_99_09")
-		mantis_writer.write(" 1 0")  # .format(area_type_id, area_subitem_id)
-		mantis_writer.write(" {} {}".format(str(number_of_records), settings.ChangeYear))
-		for modification in modifications.objects.all():
-			mantis_writer.write(" {} {}".format(modification.crop.caml_code, modification.proportion))
-		mantis_writer.write("\n")
-
-		mantis_writer.drain()  # make sure the full command is sent before proceeding with this function
-
-		results = mantis_reader.read()  # basically, wait for the EOF signal
-		model_run.result_values = results
-		model_run.complete = True
-		model_run.running = False
-		#model_run.save()
-
-	def _non_async_send(self, model_run, number_of_records, modifications):
+	def _non_async_send(self, model_run, number_of_records, modifications, scenario):
+		area_type_id, area_subitem_id = model_run.get_area_to_run()
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		s.connect((self.host, self.port))
 		# mantis_reader, mantis_writer = asyncio.open_connection(server.host, server.port)
 		# log.debug("Connected successfully")
 
 		# sent the command to the server
-		s.send(b"C2VSIM_99_09")
-		s.send(b" 1 0")  # .format(area_type_id, area_subitem_id)
-		s.send(" {} {}".format(number_of_records, settings.ChangeYear).encode('utf-8'))
+		command_string = scenario
+		#command_string += " {}".format(area_type_id)
+		#if area_subitem_id is not None:
+		#	command_string += " 1 {}".format(area_subitem_id)
+		command_string += " 1 1 1"  # do one subarea of the CVHM farms and make it the first subarea - this is for DEBUG
+		command_string += " {} {}".format(number_of_records, settings.ChangeYear)
 		for modification in modifications.all():
-			s.send(" {} {}".format(modification.crop.caml_code, modification.proportion).encode('utf-8'))
+			command_string += " {} {}".format(modification.crop.caml_code, modification.proportion)
+		log.info("Command String is: {}".format(command_string))
+		s.send(command_string.encode('utf-8'))
 		s.send(b"\n")
 
 		# s.flush()
 		# mantis_writer.drain()  # make sure the full command is sent before proceeding with this function
 
-		results = s.recv(999999)  # basically, wait for the EOF signal
-		model_run.result_values = results
+		results = s.recv(9999999)  # basically, wait for Mantis to close the connection
+		model_run.result_values = str(results)
 		model_run.complete = True
 		model_run.running = False
 		model_run.date_completed = arrow.utcnow().datetime

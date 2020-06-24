@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'npsat_manager',
     'rest_framework',
     'rest_framework.authtoken',
+    'drf_yasg',  # django rest framework schema generator
 ]
 
 if DEBUG:
