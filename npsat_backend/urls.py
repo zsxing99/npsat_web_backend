@@ -48,6 +48,7 @@ router.register(r'modification', views.ModificationViewSet, basename="Modificati
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^api/', include(router.urls)),
+    url(r'^api-token-auth/', views.CustomAuthToken.as_view()),  # POST a username and password here, get a token back
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 
     # DRF docs from drf-yasg
