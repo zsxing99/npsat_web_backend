@@ -48,8 +48,6 @@ class CropViewSet(viewsets.ModelViewSet):
 	Crop Names and Codes
 
 	Permissions: IsAdminUser | ReadOnly (Admin users can do all operations, others can use HEAD and GET)
-
-
 	"""
 	permission_classes = [IsAdminUser | ReadOnly]  # Admin users can do any operation, others, can read from the API, but not write
 
