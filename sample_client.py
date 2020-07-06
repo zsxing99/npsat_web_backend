@@ -6,7 +6,7 @@ apidemo_token = "e0a132761aa8d1168542b53648ee044f33c7bf65"  # replace this with 
 auth_header = {"Authorization": "Token {}".format(apidemo_token)}
 
 # Step 1: Create the Model Run
-create_run = requests.post("http://localhost:8000/api/model_run/",  headers=auth_header, data={'user': 4})
+create_run = requests.post("http://localhost:8000/api/model_run/",  headers=auth_header, data={'user': 4, 'name': "API Test"})
 print(create_run.json())
 
 model_run_id = create_run.json()['id']  # get the ID of the newly created model run

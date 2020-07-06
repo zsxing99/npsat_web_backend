@@ -92,6 +92,13 @@ class County(Area):
 #name = models.CharField(max_length=255)
 
 
+# We should create the following API endpoint to get the percentiles
+#/api/percentile/
+#{
+#	percentiles = [5,15,85,95],
+#	model_run = 27
+#}
+
 class ModelRun(models.Model):
 	"""
 		The central object for configuring an individual run of the model - is related to modification objects from the
@@ -162,8 +169,8 @@ class Modification(models.Model):
 		unique_together = ['model_run', 'crop']
 
 	crop = models.ForeignKey(Crop, on_delete=models.DO_NOTHING, related_name="modifications")
-	proportion = models.FloatField()  # the amount, relative to 2020 of nitrogen applied on these crops - 0 to 1
-
+	proportion = models.DecimalField(max_digits=5, decimal_places=4)  # the amount, relative to 2020 of nitrogen applied on these crops - 0 to 1
+	land_area_proportion = models.DecimalField(max_digits=5, decimal_places=4)
 	model_run = models.ForeignKey(ModelRun, null=True, blank=True, on_delete=models.CASCADE, related_name="modifications")
 
 

@@ -52,7 +52,7 @@ class ModificationSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = models.Modification
-		fields = ('crop', 'proportion', 'model_run')
+		fields = ('crop', 'proportion', 'land_area_proportion', 'model_run')
 
 	def validate(self, data):
 

@@ -59,12 +59,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 1000,
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 100,
 }
-
-#UNAUTHENTICATED_USER = 'public'
-#UNAUTHENTICATED_TOKEN = "c4e255c1d9f4404dab05ed27aa2e929cf8f53c42"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
