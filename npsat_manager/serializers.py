@@ -14,7 +14,7 @@ class CropSerializer(serializers.ModelSerializer):
 class CountySerializer(serializers.ModelSerializer):
 	class Meta:
 		model = models.County
-		fields = ('id', 'ab_code', 'ansi_code', 'name', 'mantis_id',)
+		fields = ('id', 'ab_code', 'ansi_code', 'name', 'mantis_id', 'geometry')
 
 
 class RunResultSerializer(serializers.ModelSerializer):
