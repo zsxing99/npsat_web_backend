@@ -8,13 +8,13 @@ from npsat_manager import models
 class CropSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = models.Crop
-		fields = ('id', 'name',)
+		fields = ('id', 'name', 'caml_code')
 
 
 class CountySerializer(serializers.ModelSerializer):
 	class Meta:
 		model = models.County
-		fields = ('id', 'ab_code', 'ansi_code', 'name', 'mantis_id')
+		fields = ('id', 'ab_code', 'ansi_code', 'name', 'mantis_id',)
 
 
 class RunResultSerializer(serializers.ModelSerializer):

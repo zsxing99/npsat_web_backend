@@ -55,6 +55,7 @@ class Area(models.Model):
 	mantis_id = models.IntegerField(null=True)
 	name = models.CharField(max_length=255)
 	active_in_mantis = models.BooleanField(default=False)  # Is this region actually ready to be selected?
+	geometry = models.TextField(null=True, blank=True)  #
 
 	class Meta:
 		abstract = True

@@ -1,5 +1,6 @@
 import csv
 import os
+import json
 
 from npsat_backend import settings
 
@@ -29,21 +30,62 @@ def load_counties():
 		:return:
 	"""
 
-	with open(os.path.join(settings.BASE_DIR, "npsat_manager", "data", "counties.csv")) as county_file:
-		counties = csv.DictReader(county_file)
-		for county in counties:
-			models.County(name=county['name'], ab_code=county['abcode'], ansi_code=county['ansi']).save()
+	county_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "california-counties-1.0.0", "geojson", "california_counties.geojson")
+	load_regions(county_file, (("name", "name"), ("abcode", "ab_code"), ("ansi", "ansi_code")))
 
-	enable_default_counties()
+	enable_default_counties(all=True)  # all is True just for testing - we'll set this to False later
 
 
-def enable_default_counties(enable_counties=("Tulare",)):
+def load_regions(json_file, field_map, region_model=models.County):
 	"""
-		By default, we consider counties inactive so they don't show in the list if we can't use them.
+		Given a geojson file, loads each record as a county instance, assigning data
+		to fields by the field map. The geojson file isn't a standard file, but instead just
+		the individual records for each feature, with no enclosing array, one per line (as saved by
+		QGIS in a specific format, with newline delimited)
+
+		Warning: It loads the *whole* geojson record in as geometry, even attributes that
+		aren't in the field map, so all attributes will be sent to the client. If you don't
+		want this or want a leaner GeoJSON, strip unnecessary information out before loading
+	:param json_file: newline delimited GeoJSON file (QGIS can export this) of the regions
+	:param field_map: iterable of two-tuples. First value is the field in the datasets,
+					and the second is the field here in npsat_manager (think "from", "to")
+	:param model_area: The model area instance to attach these regions to
 	:return:
 	"""
 
-	for county in enable_counties:
-		update_county = models.County.objects.get(name=county)
-		update_county.active_in_mantis = True
-		update_county.save()
+	with open(json_file, 'r') as input_data:
+		geojson = input_data.readlines()
+
+	for record in geojson:
+		# make a Python version of the JSON record
+		python_data = json.loads(record)
+		region = region_model()  # make a new region object
+		region.geometry = record  # save the whole JSON record as the geometry we'll send to the browser in the future
+
+		for fm in field_map:  # apply all the attributes to the region based on the field map
+			value = python_data["properties"][fm[0]]
+			if hasattr(region, fm[1]):  # we need to check if that attribute exists first
+				setattr(region, fm[1], value)  # if it does, set it on the region object
+
+		region.save()  # save it with the new attributes
+
+
+def enable_default_counties(enable_counties=("Tulare", ), all=False):
+	"""
+		By default, we consider counties inactive so they don't show in the list if we can't use them.
+
+		If all=True, ignores enable_counties and just enables all counties. When False, only enables counties whose
+		names are in the list
+	:return:
+	"""
+	if all:
+		counties = []
+		for county in models.County.objects.all():
+			county.active_in_mantis = True
+			counties.append(county)
+		models.County.objects.bulk_update(counties, ["active_in_mantis"])
+	else:
+		for county in enable_counties:
+			update_county = models.County.objects.get(name=county)
+			update_county.active_in_mantis = True
+			update_county.save()
