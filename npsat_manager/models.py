@@ -116,6 +116,9 @@ class ModelRun(models.Model):
 	date_completed = models.DateTimeField(null=True, blank=True)
 	user = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name="model_runs")
 
+	# global model parameters
+	unsaturated_zone_travel_time = models.DecimalField(max_digits=18, decimal_places=8)
+
 	# when null, run whole central valley
 	county = models.ForeignKey(County, null=True, blank=True, on_delete=models.DO_NOTHING, related_name="model_runs")
 	b118_basin = models.ForeignKey(B118Basin, null=True, blank=True, on_delete=models.DO_NOTHING, related_name="model_runs")

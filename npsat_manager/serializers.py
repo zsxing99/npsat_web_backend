@@ -23,8 +23,8 @@ class RunResultSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = models.ModelRun
-		fields = ('id', 'user', 'name', 'description', 'county', 'modifications', 'result_values', 'date_submitted', 'date_completed',
-		          'ready', 'complete', 'running', 'status_message')
+		fields = ('id', 'user', 'name', 'description', 'county', 'modifications', 'result_values', 'unsaturated_zone_travel_time',
+		          'date_submitted', 'date_completed', 'ready', 'complete', 'running', 'status_message')
 
 	def validate(self, data):
 		return data
