@@ -12,6 +12,7 @@ class CropSerializer(serializers.ModelSerializer):
 
 
 class CountySerializer(serializers.ModelSerializer):
+	geometry = serializers.JSONField(read_only=True, binary=False)
 	class Meta:
 		model = models.County
 		fields = ('id', 'ab_code', 'ansi_code', 'name', 'mantis_id', 'geometry')

@@ -2,6 +2,7 @@ import traceback
 import logging
 import asyncio
 import socket
+import json
 
 import django
 from django.db import models
@@ -24,6 +25,19 @@ mantis_area_map_id = {
 			"B118Basin": 4,
 			"County": 3,
 }
+
+class SimpleJSONField(models.TextField):
+	"""
+		converts dicts to JSON strings on save and converts JSON to dicts
+		on load
+	"""
+
+	def get_prep_value(self, value):
+		return json.dumps(value)
+
+	def from_db_value(self, value, expression, connection):
+		return json.loads(value)
+
 
 
 class Crop(models.Model):
@@ -55,7 +69,7 @@ class Area(models.Model):
 	mantis_id = models.IntegerField(null=True)
 	name = models.CharField(max_length=255)
 	active_in_mantis = models.BooleanField(default=False)  # Is this region actually ready to be selected?
-	geometry = models.TextField(null=True, blank=True)  #
+	geometry = SimpleJSONField(null=True, blank=True)  #
 
 	class Meta:
 		abstract = True
