@@ -18,37 +18,8 @@ class CountySerializer(serializers.ModelSerializer):
 		fields = ('id', 'ab_code', 'ansi_code', 'name', 'mantis_id', 'geometry')
 
 
-class RunResultSerializer(serializers.ModelSerializer):
-	#modifications = serializers.RelatedField(many=True, queryset=models.Modification.objects.all())
-	#county = CountySerializer(read_only=True)
-
-	class Meta:
-		model = models.ModelRun
-		fields = ('id', 'user', 'name', 'description', 'county', 'modifications', 'result_values', 'unsaturated_zone_travel_time',
-		          'date_submitted', 'date_completed', 'ready', 'complete', 'running', 'status_message')
-
-	def validate(self, data):
-		return data
-
-	#def create(self, validated_data):
-	#	print(validated_data)
-	#	modifications = validated_data.pop('modifications')
-
-		# get the county object - this will need to change when we expand it to handle other areas
-	#	county_id = validated_data.pop('county')
-	#	county = models.County.objects.get(ab_code=county_id)
-
-		# create the base model run
-	#	model_run = models.ModelRun.objects.create(county=county)
-	#	model_run.save()
-	#	for modification in modifications:
-	#		crop = models.Crop.objects.get(name=modification['name'])
-	#		mod_object = models.Modification.objects.create(model_run=model_run, crop=crop, proportion=modification.proportion)
-	#		mod_object.save()
-
-
 class ModificationSerializer(serializers.ModelSerializer):
-	#crop = CropSerializer(read_only=True)
+	crop = CropSerializer(read_only=True)
 	#model_run = RunResultSerializer()
 
 	class Meta:
@@ -73,3 +44,35 @@ class ModificationSerializer(serializers.ModelSerializer):
 			raise PermissionDenied("You don't have permission to attach modifications to this model run")
 
 		return data
+
+
+class RunResultSerializer(serializers.ModelSerializer):
+	modifications = ModificationSerializer(many=True, allow_null=True, read_only=True)
+	# county = CountySerializer(read_only=True)
+
+	class Meta:
+		model = models.ModelRun
+		fields = ('id', 'user', 'name', 'description', 'county', 'modifications', 'result_values', 'unsaturated_zone_travel_time',
+		          'date_submitted', 'date_completed', 'ready', 'complete', 'running', 'status_message')
+		depth = 0  # should mean that modifications get included in the initial request
+
+	def validate(self, data):
+		return data
+
+	#def create(self, validated_data):
+	#	print(validated_data)
+	#	modifications = validated_data.pop('modifications')
+
+		# get the county object - this will need to change when we expand it to handle other areas
+	#	county_id = validated_data.pop('county')
+	#	county = models.County.objects.get(ab_code=county_id)
+
+		# create the base model run
+	#	model_run = models.ModelRun.objects.create(county=county)
+	#	model_run.save()
+	#	for modification in modifications:
+	#		crop = models.Crop.objects.get(name=modification['name'])
+	#		mod_object = models.Modification.objects.create(model_run=model_run, crop=crop, proportion=modification.proportion)
+	#		mod_object.save()
+
+
