@@ -30,7 +30,7 @@ def load_counties():
 		:return:
 	"""
 
-	county_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "california-counties-1.0.0", "geojson", "california_counties.geojson")
+	county_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "california-counties-1.0.0", "geojson", "california_counties_simplified_0005.geojson")
 	load_regions(county_file, (("name", "name"), ("abcode", "ab_code"), ("ansi", "ansi_code")))
 
 	enable_default_counties(all=True)  # all is True just for testing - we'll set this to False later
