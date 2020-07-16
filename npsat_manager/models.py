@@ -123,6 +123,7 @@ class ModelRun(models.Model):
 	"""
 	name = models.CharField(max_length=255, null=False, blank=False)
 	description = models.TextField(null=True, blank=True)
+
 	ready = models.BooleanField(default=False, null=False)  # marked after the web interface adds all modifications
 	running = models.BooleanField(default=False, null=False)  # marked while in processing
 	complete = models.BooleanField(default=False, null=False)  # tracks if the model has actually been run for this result yet
