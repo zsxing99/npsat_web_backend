@@ -41,7 +41,14 @@ def load_farms():
 	:return:
 	"""
 
-	farm_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "CVHM-farm", "geojson", "CVHM_farms_cleaned")
+	field_map = (
+		('dwr_sbrgns', 'dwr_sbrgns'),
+		('Basins', 'basin'),
+		('Fullname', 'full_name'),
+		('ShortName', 'name'),
+	)
+	farm_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "CVHM-farm", "geojson", "CVHM_farms_cleaned.geojson")
+	load_regions(farm_file, field_map, region_model=models.CVHMFarm)
 
 
 def load_regions(json_file, field_map, region_model=models.County):
