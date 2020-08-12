@@ -26,6 +26,14 @@ mantis_area_map_id = {
 			"County": 3,
 }
 
+
+class PercentileAggregate(models.Aggregate):
+	function = 'PERCENTILE_CONT'
+	name = 'pct'
+	output = models.FloatField()
+	template = 'percentile_cont(0.5) WITHIN GROUP (ORDER BY year asc)'
+
+
 class SimpleJSONField(models.TextField):
 	"""
 		converts dicts to JSON strings on save and converts JSON to dicts
@@ -183,6 +191,19 @@ class ModelRun(models.Model):
 			self.status_message = "Model run failed. This error has been reported."
 
 		self.save()
+
+	def get_results_percentile(self, percentile):
+		results_by_year = self.results.aggregate(PercentileAggregate('loading', percentile=percentile, year_field='year'))
+
+
+class ResultLoading(models.Model):
+
+	model_run = models.ForeignKey(ModelRun, on_delete=models.CASCADE, related_name="results")
+	loading = models.FloatField(null=False, blank=False)
+	year = models.SmallIntegerField()  # this will be inferred from the order of values coming out of Mantis
+	well = models.IntegerField()  # this is just an ID assigned to each stream of values in order coming from Mantis.
+									# each well with the same value is *not* the same between model runs, but allows
+									# us to group within a model run
 
 
 class Modification(models.Model):
