@@ -36,6 +36,21 @@ def load_counties():
 	enable_default_counties(all=True)  # all is True just for testing - we'll set this to False later
 
 
+def load_farms():
+	"""
+	:return:
+	"""
+
+	field_map = (
+		('dwr_sbrgns', 'dwr_sbrgns'),
+		('Basins', 'basin'),
+		('Fullname', 'full_name'),
+		('ShortName', 'name'),
+	)
+	farm_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "CVHM-farm", "geojson", "CVHM_farms_cleaned.geojson")
+	load_regions(farm_file, field_map, region_model=models.CVHMFarm)
+
+
 def load_regions(json_file, field_map, region_model=models.County):
 	"""
 		Given a geojson file, loads each record as a county instance, assigning data
