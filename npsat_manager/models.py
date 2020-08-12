@@ -93,7 +93,9 @@ class SubBasin(Area):
 
 
 class CVHMFarm(Area):
-	farm_id = models.IntegerField()
+	dwr_sbrgns = models.IntegerField()
+	full_name = models.CharField(max_length=255)
+	basin = models.IntegerField()
 
 
 class B118Basin(Area):
