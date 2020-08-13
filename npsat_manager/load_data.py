@@ -31,7 +31,7 @@ def load_counties():
 	"""
 
 	county_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "california-counties-1.0.0", "geojson", "california_counties_simplified_0005.geojson")
-	load_regions(county_file, (("name", "name"), ("abcode", "ab_code"), ("ansi", "ansi_code")))
+	load_regions(county_file, (("name", "name"), ("abcode", "external_id")), region_type="County")  #, ("ansi", "ansi_code")))
 
 	enable_default_counties(all=True)  # all is True just for testing - we'll set this to False later
 
@@ -48,10 +48,10 @@ def load_farms():
 		('ShortName', 'name'),
 	)
 	farm_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "CVHM-farm", "geojson", "CVHM_farms_cleaned.geojson")
-	load_regions(farm_file, field_map, region_model=models.CVHMFarm)
+	load_regions(farm_file, field_map, region_type="CVHMFarm")
 
 
-def load_regions(json_file, field_map, region_model=models.County):
+def load_regions(json_file, field_map, region_type):
 	"""
 		Given a geojson file, loads each record as a county instance, assigning data
 		to fields by the field map. The geojson file isn't a standard file, but instead just
@@ -74,7 +74,7 @@ def load_regions(json_file, field_map, region_model=models.County):
 	for record in geojson:
 		# make a Python version of the JSON record
 		python_data = json.loads(record)
-		region = region_model()  # make a new region object
+		region = models.Region()  # make a new region object
 		region.geometry = record  # save the whole JSON record as the geometry we'll send to the browser in the future
 
 		for fm in field_map:  # apply all the attributes to the region based on the field map
@@ -95,12 +95,12 @@ def enable_default_counties(enable_counties=("Tulare", ), all=False):
 	"""
 	if all:
 		counties = []
-		for county in models.County.objects.all():
+		for county in models.Region.objects.all():
 			county.active_in_mantis = True
 			counties.append(county)
-		models.County.objects.bulk_update(counties, ["active_in_mantis"])
+		models.Region.objects.bulk_update(counties, ["active_in_mantis"])
 	else:
 		for county in enable_counties:
-			update_county = models.County.objects.get(name=county)
+			update_county = models.Region.objects.get(name=county)
 			update_county.active_in_mantis = True
 			update_county.save()

@@ -11,11 +11,11 @@ class CropSerializer(serializers.ModelSerializer):
 		fields = ('id', 'name', 'caml_code')
 
 
-class CountySerializer(serializers.ModelSerializer):
+class RegionSerializer(serializers.ModelSerializer):
 	geometry = serializers.JSONField(read_only=True, binary=False)
 	class Meta:
-		model = models.County
-		fields = ('id', 'ab_code', 'ansi_code', 'name', 'mantis_id', 'geometry')
+		model = models.Region
+		fields = ('id', 'external_id', 'name', 'mantis_id', 'geometry')
 
 
 class ModificationSerializer(serializers.ModelSerializer):
@@ -55,7 +55,7 @@ class RunResultSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = models.ModelRun
-		fields = ('id', 'user', 'name', 'description', 'county', 'modifications', 'result_values', 'unsaturated_zone_travel_time',
+		fields = ('id', 'user', 'name', 'description', 'region', 'modifications', 'result_values', 'unsaturated_zone_travel_time',
 		          'date_submitted', 'date_completed', 'ready', 'complete', 'running', 'status_message')
 		depth = 0  # should mean that modifications get included in the initial request
 

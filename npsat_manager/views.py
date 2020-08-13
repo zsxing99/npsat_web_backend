@@ -63,8 +63,8 @@ class CountyViewSet(viewsets.ModelViewSet):
 	"""
 	permission_classes = [IsAdminUser | ReadOnly]  # Admin users can do any operation, others, can read from the API, but not write
 
-	serializer_class = serializers.CountySerializer
-	queryset = models.County.objects.filter(active_in_mantis=True).order_by('name')
+	serializer_class = serializers.RegionSerializer
+	queryset = models.Region.objects.filter(active_in_mantis=True).order_by('name')
 
 
 class ModelRunViewSet(viewsets.ModelViewSet):

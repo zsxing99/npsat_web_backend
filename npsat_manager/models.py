@@ -71,43 +71,22 @@ class CropGroup(models.Model):
 	level = models.CharField(max_length=255)
 
 
-class Area(models.Model):
+class Region(models.Model):
 	"""
 		Used for the various location models - this will let us have a groupings class
 		that can be used for any of the locations
 	"""
+
 	mantis_id = models.IntegerField(null=True)
 	name = models.CharField(max_length=255)
 	active_in_mantis = models.BooleanField(default=False)  # Is this region actually ready to be selected?
 	geometry = SimpleJSONField(null=True, blank=True)  #
-
-	class Meta:
-		abstract = True
+	external_id = models.CharField(max_length=255)
+	region_type = models.CharField(max_length=25)  # is it a county, a B118 Basin, etc? we'll need to have some kind of code for this
 
 	def __str__(self):
 		return self.name
 
-
-class SubBasin(Area):
-	subbasin_id = models.IntegerField()
-
-
-class CVHMFarm(Area):
-	dwr_sbrgns = models.IntegerField()
-	full_name = models.CharField(max_length=255)
-	basin = models.IntegerField()
-
-
-class B118Basin(Area):
-	"""
-
-	"""
-	b118_id = models.IntegerField()
-
-
-class County(Area):
-	ab_code = models.CharField(max_length=4)
-	ansi_code = models.CharField(max_length=3)
 
 #class AreaGroup(models.Model):
 """
@@ -147,15 +126,13 @@ class ModelRun(models.Model):
 	unsaturated_zone_travel_time = models.DecimalField(max_digits=18, decimal_places=8, null=True, blank=True)
 
 	# when null, run whole central valley
-	county = models.ForeignKey(County, null=True, blank=True, on_delete=models.DO_NOTHING, related_name="model_runs")
-	b118_basin = models.ForeignKey(B118Basin, null=True, blank=True, on_delete=models.DO_NOTHING, related_name="model_runs")
-	cvhm_farm = models.ForeignKey(CVHMFarm, null=True, blank=True, on_delete=models.DO_NOTHING, related_name="model_runs")
-	subbasin = models.ForeignKey(SubBasin, null=True, blank=True, on_delete=models.DO_NOTHING, related_name="model_runs")
+	region = models.ManyToManyField(Region, null=True, blank=True, related_name="model_runs")
 
 	# modifications - backward relationship
 
 	def get_area_to_run(self):
 		"""
+			THIS NEEDS A REFACTOR
 			Returns a two-tuple of items to area id, subarea_id to pass to the mantis server
 		"""
 		area = None
