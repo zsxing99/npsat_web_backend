@@ -10,6 +10,7 @@ from npsat_manager import models
 def load_all():
 	load_crops()
 	load_counties()
+	load_farms()
 
 
 def load_crops():
@@ -42,9 +43,7 @@ def load_farms():
 	"""
 
 	field_map = (
-		('dwr_sbrgns', 'dwr_sbrgns'),
-		('Basins', 'basin'),
-		('Fullname', 'full_name'),
+		('dwr_sbrgns', 'external_id'),
 		('ShortName', 'name'),
 	)
 	farm_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "CVHM-farm", "geojson", "CVHM_farms_cleaned.geojson")
@@ -81,6 +80,7 @@ def load_regions(json_file, field_map, region_type):
 			value = python_data["properties"][fm[0]]
 			if hasattr(region, fm[1]):  # we need to check if that attribute exists first
 				setattr(region, fm[1], value)  # if it does, set it on the region object
+			setattr(region, 'region_type', region_type)
 
 		region.save()  # save it with the new attributes
 
