@@ -18,6 +18,12 @@ class RegionSerializer(serializers.ModelSerializer):
 		fields = ('id', 'external_id', 'name', 'mantis_id', 'geometry')
 
 
+class NestedRegionSerializer(serializers.ModelSerializer):  # for use when nested in the model runs to remove geometry
+	class Meta:
+		model = models.Region
+		fields = ('id', 'external_id', 'name', 'mantis_id')
+
+
 class ModificationSerializer(serializers.ModelSerializer):
 	# crop = CropSerializer(read_only=True)
 	#model_run = RunResultSerializer()
@@ -48,7 +54,7 @@ class ModificationSerializer(serializers.ModelSerializer):
 
 class RunResultSerializer(serializers.ModelSerializer):
 	modifications = ModificationSerializer(many=True, allow_null=True, read_only=True) # for now, we're explicity blocking nested writes
-	regions = RegionSerializer(many=True, allow_null=True, read_only=True) # for now, we're explicity blocking nested writes
+	regions = NestedRegionSerializer(many=True, allow_null=True, read_only=True) # for now, we're explicity blocking nested writes
 	# we might enable nested writes later, in which case, remove the read_only flag.
 
 	# don't put the county serializer here or else we'll get the county geometries for every run result read (do not want)
