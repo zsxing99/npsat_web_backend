@@ -48,6 +48,7 @@ class ModificationSerializer(serializers.ModelSerializer):
 
 class RunResultSerializer(serializers.ModelSerializer):
 	modifications = ModificationSerializer(many=True, allow_null=True, read_only=True) # for now, we're explicity blocking nested writes
+	regions = RegionSerializer(many=True, allow_null=True, read_only=True) # for now, we're explicity blocking nested writes
 	# we might enable nested writes later, in which case, remove the read_only flag.
 
 	# don't put the county serializer here or else we'll get the county geometries for every run result read (do not want)
@@ -55,7 +56,7 @@ class RunResultSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = models.ModelRun
-		fields = ('id', 'user', 'name', 'description', 'region', 'modifications', 'result_values', 'unsaturated_zone_travel_time',
+		fields = ('id', 'user', 'name', 'description', 'regions', 'modifications', 'result_values', 'unsaturated_zone_travel_time',
 		          'date_submitted', 'date_completed', 'ready', 'complete', 'running', 'status_message')
 		depth = 0  # should mean that modifications get included in the initial request
 

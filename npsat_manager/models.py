@@ -126,7 +126,7 @@ class ModelRun(models.Model):
 	unsaturated_zone_travel_time = models.DecimalField(max_digits=18, decimal_places=8, null=True, blank=True)
 
 	# when null, run whole central valley
-	region = models.ManyToManyField(Region, null=True, blank=True, related_name="model_runs")
+	regions = models.ManyToManyField(Region, null=True, blank=True, related_name="model_runs")
 
 	# modifications - backward relationship
 
