@@ -11,6 +11,7 @@ def load_all():
 	load_crops()
 	load_counties()
 	load_farms()
+	load_central_valley()
 
 
 def load_crops():
@@ -48,6 +49,11 @@ def load_farms():
 	)
 	farm_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "CVHM-farm", "geojson", "CVHM_farms_cleaned.geojson")
 	load_regions(farm_file, field_map, region_type="CVHMFarm")
+
+
+def load_central_valley():
+	central_valley_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "central_valley.geojson")
+	load_regions(central_valley_file, (("name", "name"), ("Id", "mantis_id")), region_type="Central Valley")
 
 
 def load_regions(json_file, field_map, region_type):
