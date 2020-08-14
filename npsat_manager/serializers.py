@@ -15,7 +15,7 @@ class RegionSerializer(serializers.ModelSerializer):
 	geometry = serializers.JSONField(read_only=True, binary=False)
 	class Meta:
 		model = models.Region
-		fields = ('id', 'external_id', 'name', 'mantis_id', 'geometry')
+		fields = ('id', 'external_id', 'name', 'mantis_id', 'geometry', 'region_type')
 
 
 class NestedRegionSerializer(serializers.ModelSerializer):  # for use when nested in the model runs to remove geometry

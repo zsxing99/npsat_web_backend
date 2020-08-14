@@ -55,16 +55,22 @@ class CropViewSet(viewsets.ModelViewSet):
 	queryset = models.Crop.objects.order_by('name')
 
 
-class CountyViewSet(viewsets.ModelViewSet):
+class RegionViewSet(viewsets.ModelViewSet):
 	"""
-		API endpoint that allows listing of Counties
+		API endpoint that allows listing of Region
 
 		Permissions: IsAdminUser | ReadOnly (Admin users can do all operations, others can use HEAD and GET)
 	"""
 	permission_classes = [IsAdminUser | ReadOnly]  # Admin users can do any operation, others, can read from the API, but not write
 
 	serializer_class = serializers.RegionSerializer
-	queryset = models.Region.objects.filter(active_in_mantis=True).order_by('name')
+
+	def get_queryset(self):
+		queryset = models.Region.objects.filter(active_in_mantis=True).order_by('name')
+		region_type = self.request.query_params.get('region_type', None)
+		if region_type:
+			queryset = queryset.filter(region_type=region_type)
+		return queryset
 
 
 class ModelRunViewSet(viewsets.ModelViewSet):

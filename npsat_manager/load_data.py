@@ -110,3 +110,24 @@ def enable_default_counties(enable_counties=("Tulare", ), all=False):
 			update_county = models.Region.objects.get(name=county)
 			update_county.active_in_mantis = True
 			update_county.save()
+
+
+def enable_region_dev_data(enable_regions=("Central Valley", ), all=False):
+	"""
+		For dev purpose, enable all regions
+
+		If all=True, ignores enable_counties and just enables all counties. When False, only enables counties whose
+		names are in the list
+	:return:
+	"""
+	if all:
+		regions = []
+		for region in models.Region.objects.all():
+			region.active_in_mantis = True
+			regions.append(region)
+		models.Region.objects.bulk_update(regions, ["active_in_mantis"])
+	else:
+		for county in enable_regions:
+			update_region = models.Region.objects.get(name=county)
+			update_region.active_in_mantis = True
+			update_region.save()
