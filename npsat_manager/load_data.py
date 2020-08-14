@@ -53,7 +53,7 @@ def load_farms():
 
 def load_central_valley():
 	central_valley_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "central_valley.geojson")
-	load_regions(central_valley_file, (("name", "name"), ("Id", "mantis_id")), region_type="Central Valley")
+	load_regions(central_valley_file, (("name", "name"), ("Id", "external_id")), region_type="Central Valley")
 
 
 def load_regions(json_file, field_map, region_type):
