@@ -81,7 +81,7 @@ class Region(models.Model):
 	name = models.CharField(max_length=255)
 	active_in_mantis = models.BooleanField(default=False)  # Is this region actually ready to be selected?
 	geometry = SimpleJSONField(null=True, blank=True)  #
-	external_id = models.CharField(max_length=255)
+	external_id = models.CharField(null=True, max_length=255)
 	region_type = models.CharField(max_length=25)  # is it a county, a B118 Basin, etc? we'll need to have some kind of code for this
 
 	def __str__(self):
@@ -125,7 +125,7 @@ class ModelRun(models.Model):
 	# global model parameters
 	unsaturated_zone_travel_time = models.DecimalField(max_digits=18, decimal_places=8, null=True, blank=True)
 
-	# when null, run whole central valley
+	# model will be run on these regions
 	regions = models.ManyToManyField(Region, related_name="model_runs")
 
 	# other model specs
