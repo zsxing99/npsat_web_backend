@@ -81,7 +81,7 @@ class Region(models.Model):
 	name = models.CharField(max_length=255)
 	active_in_mantis = models.BooleanField(default=False)  # Is this region actually ready to be selected?
 	geometry = SimpleJSONField(null=True, blank=True)  #
-	external_id = models.CharField(max_length=255)
+	external_id = models.CharField(null=True, max_length=255, blank=True)
 	region_type = models.CharField(max_length=25)  # is it a county, a B118 Basin, etc? we'll need to have some kind of code for this
 
 	def __str__(self):
@@ -125,29 +125,16 @@ class ModelRun(models.Model):
 	# global model parameters
 	unsaturated_zone_travel_time = models.DecimalField(max_digits=18, decimal_places=8, null=True, blank=True)
 
-	# when null, run whole central valley
+	# model will be run on these regions
 	regions = models.ManyToManyField(Region, related_name="model_runs")
 
+	# other model specs
+	n_years = models.IntegerField()
+	reduction_year = models.IntegerField()
+	water_content = models.DecimalField(max_digits=5, decimal_places=4)
+	scenario_name = models.CharField(max_length=255)
+
 	# modifications - backward relationship
-
-	def get_area_to_run(self):
-		"""
-			THIS NEEDS A REFACTOR
-			Returns a two-tuple of items to area id, subarea_id to pass to the mantis server
-		"""
-		area = None
-		possible_areas = ("county", "b118_basin", "cvhm_farm", "subbasin")
-		for area_value in possible_areas:
-			possible_area = getattr(self, area_value)
-			if possible_area is not None:
-				area = possible_area
-				break
-		else:
-			return 1, 0  # 1 is central valley, 0 is because there's no subitem
-
-		area_type_id = mantis_area_map_id[type(area).__name__]  # we key the ids based on the class being used - this is clunky, but efficient
-
-		return area_type_id, area.mantis_id
 
 	def load_result(self, values):
 		self.result_values = ",".join([str(item) for item in values])
@@ -191,7 +178,7 @@ class Modification(models.Model):
 
 	crop = models.ForeignKey(Crop, on_delete=models.DO_NOTHING, related_name="modifications")
 	proportion = models.DecimalField(max_digits=5, decimal_places=4)  # the amount, relative to 2020 of nitrogen applied on these crops - 0 to 1
-	land_area_proportion = models.DecimalField(max_digits=5, decimal_places=4)
+	# land_area_proportion = models.DecimalField(max_digits=5, decimal_places=4)
 	model_run = models.ForeignKey(ModelRun, null=True, blank=True, on_delete=models.CASCADE, related_name="modifications")
 
 
@@ -237,7 +224,7 @@ class MantisServer(models.Model):
 
 		log.debug("Connecting to server to send command")
 		try:
-			self._non_async_send(model_run, number_of_records, modifications, scenario)
+			self._non_async_send(model_run, number_of_records, modifications)
 		except:
 			# on any exception, reset the state of this model run so it will be picked up again later
 			model_run.running = False
@@ -245,25 +232,29 @@ class MantisServer(models.Model):
 			model_run.save()
 			raise
 
-	def _non_async_send(self, model_run, number_of_records, modifications, scenario):
-		area_type_id, area_subitem_id = model_run.get_area_to_run()
+	def _non_async_send(self, model_run, number_of_records, modifications):
+		# sanity check: model_run must be attached with at least one region
+		if len(model_run.regions.all()) < 1:
+			return
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		s.connect((self.host, self.port))
 		# mantis_reader, mantis_writer = asyncio.open_connection(server.host, server.port)
 		# log.debug("Connected successfully")
 
+		region_type = model_run.regions.all()[0].region_type
 		# sent the command to the server
-		command_string = scenario
-		#command_string += " {}".format(area_type_id)
-		#if area_subitem_id is not None:
-		#	command_string += " 1 {}".format(area_subitem_id)
-		command_string += " 1 1 1"  # do one subarea of the CVHM farms and make it the first subarea - this is for DEBUG
-		command_string += " {} {}".format(number_of_records, settings.ChangeYear)
+		# detailed input refers to https://github.com/giorgk/Mantis#format-of-input-message
+		command_string = "{} {} {} {}".format(model_run.n_years, model_run.reduction_year, model_run.water_content, model_run.scenario_name)
+		command_string += " {}".format(mantis_area_map_id[region_type])
+		if mantis_area_map_id[region_type] != 1:
+			for region in model_run.regions.all():
+				command_string += " {}".format(region.mantis_id)
+		command_string += " {}".format(number_of_records)
 		for modification in modifications.all():
-			command_string += " {} {}".format(modification.crop.caml_code, modification.proportion)
+			command_string += " {} {}".format(modification.crop.caml_code, 1 - modification.proportion)
+		command_string += ' ENDofMSG\n'
 		log.info("Command String is: {}".format(command_string))
 		s.send(command_string.encode('utf-8'))
-		s.send(b"\n")
 
 		# s.flush()
 		# mantis_writer.drain()  # make sure the full command is sent before proceeding with this function

@@ -15,7 +15,7 @@ class RegionSerializer(serializers.ModelSerializer):
 	geometry = serializers.JSONField(read_only=True, binary=False)
 	class Meta:
 		model = models.Region
-		fields = ('id', 'external_id', 'name', 'mantis_id', 'geometry')
+		fields = ('id', 'external_id', 'name', 'mantis_id', 'geometry', 'region_type')
 
 
 class NestedRegionSerializer(serializers.ModelSerializer):  # for use when nested in the model runs to remove geometry
@@ -63,26 +63,10 @@ class RunResultSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = models.ModelRun
 		fields = ('id', 'user', 'name', 'description', 'regions', 'modifications', 'result_values', 'unsaturated_zone_travel_time',
-		          'date_submitted', 'date_completed', 'ready', 'complete', 'running', 'status_message')
+		          'date_submitted', 'date_completed', 'ready', 'complete', 'running', 'status_message', 'n_years', 'water_content',
+				  'reduction_year', 'scenario_name')
 		depth = 0  # should mean that modifications get included in the initial request
 
 	def validate(self, data):
 		return data
-
-	#def create(self, validated_data):
-	#	print(validated_data)
-	#	modifications = validated_data.pop('modifications')
-
-		# get the county object - this will need to change when we expand it to handle other areas
-	#	county_id = validated_data.pop('county')
-	#	county = models.County.objects.get(ab_code=county_id)
-
-		# create the base model run
-	#	model_run = models.ModelRun.objects.create(county=county)
-	#	model_run.save()
-	#	for modification in modifications:
-	#		crop = models.Crop.objects.get(name=modification['name'])
-	#		mod_object = models.Modification.objects.create(model_run=model_run, crop=crop, proportion=modification.proportion)
-	#		mod_object.save()
-
 
