@@ -178,7 +178,7 @@ class Modification(models.Model):
 
 	crop = models.ForeignKey(Crop, on_delete=models.DO_NOTHING, related_name="modifications")
 	proportion = models.DecimalField(max_digits=5, decimal_places=4)  # the amount, relative to 2020 of nitrogen applied on these crops - 0 to 1
-	land_area_proportion = models.DecimalField(max_digits=5, decimal_places=4)
+	# land_area_proportion = models.DecimalField(max_digits=5, decimal_places=4)
 	model_run = models.ForeignKey(ModelRun, null=True, blank=True, on_delete=models.CASCADE, related_name="modifications")
 
 
