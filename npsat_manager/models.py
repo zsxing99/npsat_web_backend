@@ -129,8 +129,8 @@ class ModelRun(models.Model):
 	regions = models.ManyToManyField(Region, related_name="model_runs")
 
 	# other model specs
-	n_years = models.IntegerField()
-	reduction_year = models.IntegerField()
+	n_years = models.IntegerField(default=100, blank=True)
+	reduction_year = models.IntegerField(default=2020, blank=True)
 	water_content = models.DecimalField(max_digits=5, decimal_places=4)
 	scenario_name = models.CharField(max_length=255)
 

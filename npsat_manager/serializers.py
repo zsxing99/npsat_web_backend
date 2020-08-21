@@ -21,7 +21,7 @@ class RegionSerializer(serializers.ModelSerializer):
 class NestedRegionSerializer(serializers.ModelSerializer):  # for use when nested in the model runs to remove geometry
 	class Meta:
 		model = models.Region
-		fields = ('id', 'external_id', 'name', 'mantis_id')
+		fields = ('id', 'external_id', 'name', 'mantis_id', 'region_type')
 
 
 class ModificationSerializer(serializers.ModelSerializer):
@@ -30,7 +30,7 @@ class ModificationSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = models.Modification
-		fields = ('crop', 'proportion', 'land_area_proportion', 'model_run')
+		fields = ('crop', 'proportion', 'model_run')
 
 	def validate(self, data):
 
@@ -52,13 +52,16 @@ class ModificationSerializer(serializers.ModelSerializer):
 		return data
 
 
-class RunResultSerializer(serializers.ModelSerializer):
-	modifications = ModificationSerializer(many=True, allow_null=True, read_only=True) # for now, we're explicity blocking nested writes
-	regions = NestedRegionSerializer(many=True, allow_null=True, read_only=True) # for now, we're explicity blocking nested writes
-	# we might enable nested writes later, in which case, remove the read_only flag.
+class NestedModificationSerializer(serializers.ModelSerializer):
 
-	# don't put the county serializer here or else we'll get the county geometries for every run result read (do not want)
-	# county = CountySerializer(read_only=True)
+	class Meta:
+		model = models.Modification
+		fields = ('id', 'crop', 'proportion')
+
+
+class RunResultSerializer(serializers.ModelSerializer):
+	modifications = NestedModificationSerializer(many=True, allow_null=True, partial=True)
+	regions = NestedRegionSerializer(many=True, allow_null=True, partial=True)
 
 	class Meta:
 		model = models.ModelRun
@@ -69,4 +72,18 @@ class RunResultSerializer(serializers.ModelSerializer):
 
 	def validate(self, data):
 		return data
+
+	def create(self, validated_data):
+		regions_data = validated_data.pop('regions')
+		modifications_data = validated_data.pop('modifications')
+
+		model_run = models.ModelRun.objects.create(**validated_data)
+		for modification in modifications_data:
+			models.Modification.objects.create(model_run=model_run, **modification)
+
+		for region in regions_data:
+			print(region)
+			model_run.regions.add(models.Region.objects.get(id=region['id']))
+
+		return model_run
 
