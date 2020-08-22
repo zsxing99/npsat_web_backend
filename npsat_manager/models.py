@@ -246,6 +246,7 @@ class MantisServer(models.Model):
 		# detailed input refers to https://github.com/giorgk/Mantis#format-of-input-message
 		command_string = "{} {} {} {}".format(model_run.n_years, model_run.reduction_year, model_run.water_content, model_run.scenario_name)
 		command_string += " {}".format(mantis_area_map_id[region_type])
+		command_string += " {}".format(len(model_run.regions.all()))
 		if mantis_area_map_id[region_type] != 1:
 			for region in model_run.regions.all():
 				command_string += " {}".format(region.mantis_id)

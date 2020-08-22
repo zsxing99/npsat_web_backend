@@ -22,6 +22,19 @@ class NestedRegionSerializer(serializers.ModelSerializer):  # for use when neste
 	class Meta:
 		model = models.Region
 		fields = ('id', 'external_id', 'name', 'mantis_id', 'region_type')
+		# set id/name/region_type values for POST method
+		extra_kwargs = {
+			"id": {
+				"read_only": False,
+				"required": False,
+			},
+			"name": {
+				"required": False,
+			},
+			"region_type": {
+				"required": False
+			}
+		}
 
 
 class ModificationSerializer(serializers.ModelSerializer):
@@ -61,7 +74,7 @@ class NestedModificationSerializer(serializers.ModelSerializer):
 
 class RunResultSerializer(serializers.ModelSerializer):
 	modifications = NestedModificationSerializer(many=True, allow_null=True, partial=True)
-	regions = NestedRegionSerializer(many=True, allow_null=True, partial=True)
+	regions = NestedRegionSerializer(many=True, allow_null=True, partial=True, read_only=False)
 
 	class Meta:
 		model = models.ModelRun
@@ -82,8 +95,6 @@ class RunResultSerializer(serializers.ModelSerializer):
 			models.Modification.objects.create(model_run=model_run, **modification)
 
 		for region in regions_data:
-			print(region)
 			model_run.regions.add(models.Region.objects.get(id=region['id']))
 
 		return model_run
-
