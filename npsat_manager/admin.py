@@ -4,7 +4,7 @@ from django.contrib import admin
 
 from . import models
 
-admin.site.register(models.County)
+admin.site.register(models.Region)
 admin.site.register(models.Crop)
 admin.site.register(models.CropGroup)
 admin.site.register(models.MantisServer)

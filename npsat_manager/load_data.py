@@ -10,6 +10,8 @@ from npsat_manager import models
 def load_all():
 	load_crops()
 	load_counties()
+	load_farms()
+	load_central_valley()
 
 
 def load_crops():
@@ -31,7 +33,7 @@ def load_counties():
 	"""
 
 	county_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "california-counties-1.0.0", "geojson", "california_counties_simplified_0005.geojson")
-	load_regions(county_file, (("name", "name"), ("abcode", "ab_code"), ("ansi", "ansi_code")))
+	load_regions(county_file, (("name", "name"), ("abcode", "external_id")), region_type="County")  #, ("ansi", "ansi_code")))
 
 	enable_default_counties(all=True)  # all is True just for testing - we'll set this to False later
 
@@ -42,16 +44,19 @@ def load_farms():
 	"""
 
 	field_map = (
-		('dwr_sbrgns', 'dwr_sbrgns'),
-		('Basins', 'basin'),
-		('Fullname', 'full_name'),
+		('dwr_sbrgns', 'external_id'),
 		('ShortName', 'name'),
 	)
 	farm_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "CVHM-farm", "geojson", "CVHM_farms_cleaned.geojson")
-	load_regions(farm_file, field_map, region_model=models.CVHMFarm)
+	load_regions(farm_file, field_map, region_type="CVHMFarm")
 
 
-def load_regions(json_file, field_map, region_model=models.County):
+def load_central_valley():
+	central_valley_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "central_valley.geojson")
+	load_regions(central_valley_file, (("name", "name"), ("Id", "external_id")), region_type="Central Valley")
+
+
+def load_regions(json_file, field_map, region_type):
 	"""
 		Given a geojson file, loads each record as a county instance, assigning data
 		to fields by the field map. The geojson file isn't a standard file, but instead just
@@ -74,13 +79,14 @@ def load_regions(json_file, field_map, region_model=models.County):
 	for record in geojson:
 		# make a Python version of the JSON record
 		python_data = json.loads(record)
-		region = region_model()  # make a new region object
+		region = models.Region()  # make a new region object
 		region.geometry = record  # save the whole JSON record as the geometry we'll send to the browser in the future
 
 		for fm in field_map:  # apply all the attributes to the region based on the field map
 			value = python_data["properties"][fm[0]]
 			if hasattr(region, fm[1]):  # we need to check if that attribute exists first
 				setattr(region, fm[1], value)  # if it does, set it on the region object
+			setattr(region, 'region_type', region_type)
 
 		region.save()  # save it with the new attributes
 
@@ -95,12 +101,33 @@ def enable_default_counties(enable_counties=("Tulare", ), all=False):
 	"""
 	if all:
 		counties = []
-		for county in models.County.objects.all():
+		for county in models.Region.objects.all():
 			county.active_in_mantis = True
 			counties.append(county)
-		models.County.objects.bulk_update(counties, ["active_in_mantis"])
+		models.Region.objects.bulk_update(counties, ["active_in_mantis"])
 	else:
 		for county in enable_counties:
-			update_county = models.County.objects.get(name=county)
+			update_county = models.Region.objects.get(name=county)
 			update_county.active_in_mantis = True
 			update_county.save()
+
+
+def enable_region_dev_data(enable_regions=("Central Valley", ), all=False):
+	"""
+		For dev purpose, enable all regions
+
+		If all=True, ignores enable_counties and just enables all counties. When False, only enables counties whose
+		names are in the list
+	:return:
+	"""
+	if all:
+		regions = []
+		for region in models.Region.objects.all():
+			region.active_in_mantis = True
+			regions.append(region)
+		models.Region.objects.bulk_update(regions, ["active_in_mantis"])
+	else:
+		for county in enable_regions:
+			update_region = models.Region.objects.get(name=county)
+			update_region.active_in_mantis = True
+			update_region.save()

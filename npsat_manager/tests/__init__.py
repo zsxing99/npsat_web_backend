@@ -7,6 +7,7 @@ from npsat_manager import mantis
 
 # Create your tests here.
 
+# this was testing a sample Python implementation of Mantis - no longer used
 class TestMantis(TestCase):
 	def test_mantis(self):
 		annual_loadings = mantis.make_annual_loadings([])

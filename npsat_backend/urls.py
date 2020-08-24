@@ -41,7 +41,7 @@ schema_view = get_schema_view(
 # set up DRF
 router = routers.DefaultRouter()
 router.register(r'crops', views.CropViewSet)
-router.register(r'county', views.CountyViewSet)
+router.register(r'region', views.RegionViewSet, basename="Region")
 router.register(r'model_run', views.ModelRunViewSet, basename="ModelRun")
 router.register(r'modification', views.ModificationViewSet, basename="Modification")
 
