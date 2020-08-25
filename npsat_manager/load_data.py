@@ -131,3 +131,9 @@ def enable_region_dev_data(enable_regions=("Central Valley", ), all=False):
 			update_region = models.Region.objects.get(name=county)
 			update_region.active_in_mantis = True
 			update_region.save()
+
+
+def enable_scenario_dev_data():
+	models.Scenario(name='CVHM_70_03', active_in_mantis=True).save()
+	models.Scenario(name='C2VSIM_99_09', active_in_mantis=True).save()
+

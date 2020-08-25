@@ -37,6 +37,21 @@ class NestedRegionSerializer(serializers.ModelSerializer):  # for use when neste
 		}
 
 
+class ScenarioSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = models.Scenario
+		fields = ('name', 'id')
+		extra_kwargs = {
+			"id": {
+				"read_only": False,
+				"required": False,
+			},
+			'name': {
+				'required': False
+			}
+		}
+
+
 class ModificationSerializer(serializers.ModelSerializer):
 	# crop = CropSerializer(read_only=True)
 	#model_run = RunResultSerializer()
@@ -75,12 +90,13 @@ class NestedModificationSerializer(serializers.ModelSerializer):
 class RunResultSerializer(serializers.ModelSerializer):
 	modifications = NestedModificationSerializer(many=True, allow_null=True, partial=True)
 	regions = NestedRegionSerializer(many=True, allow_null=True, partial=True, read_only=False)
+	scenario = ScenarioSerializer(many=False, read_only=False, allow_null=True)
 
 	class Meta:
 		model = models.ModelRun
 		fields = ('id', 'user', 'name', 'description', 'regions', 'modifications', 'result_values', 'unsaturated_zone_travel_time',
 		          'date_submitted', 'date_completed', 'ready', 'complete', 'running', 'status_message', 'n_years', 'water_content',
-				  'reduction_year', 'scenario_name')
+				  'reduction_year', 'scenario')
 		depth = 0  # should mean that modifications get included in the initial request
 
 	def validate(self, data):
@@ -89,8 +105,9 @@ class RunResultSerializer(serializers.ModelSerializer):
 	def create(self, validated_data):
 		regions_data = validated_data.pop('regions')
 		modifications_data = validated_data.pop('modifications')
+		scenario = validated_data.pop('scenario')
 
-		model_run = models.ModelRun.objects.create(**validated_data)
+		model_run = models.ModelRun.objects.create(**validated_data, scenario=models.Scenario.objects.get(id=scenario['id']))
 		for modification in modifications_data:
 			models.Modification.objects.create(model_run=model_run, **modification)
 
@@ -98,3 +115,4 @@ class RunResultSerializer(serializers.ModelSerializer):
 			model_run.regions.add(models.Region.objects.get(id=region['id']))
 
 		return model_run
+
