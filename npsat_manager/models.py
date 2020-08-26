@@ -19,7 +19,7 @@ from npsat_backend import settings
 log = logging.getLogger("npsat.manager")
 
 mantis_area_map_id = {
-			"CentralValley": 1,
+			"Central Valley": 1,
 			"SubBasin": 2,
 			"CVHMFarm": 5,
 			"B118Basin": 4,
@@ -250,7 +250,7 @@ class MantisServer(models.Model):
 		modifications = model_run.modifications.all()
 		# sent the command to the server
 		# detailed input refers to https://github.com/giorgk/Mantis#format-of-input-message
-		command_string = "{} {} {} {}".format(model_run.n_years, model_run.reduction_year, model_run.water_content, Scenario.objects.get(id=model_run.scenario).name)
+		command_string = "{} {} {} {}".format(model_run.n_years, model_run.reduction_year, model_run.water_content, model_run.scenario.name)
 		command_string += " {}".format(mantis_area_map_id[region_type])
 		# use len() to cache db query
 		command_string += " {}".format(len(model_run.regions.all()))
