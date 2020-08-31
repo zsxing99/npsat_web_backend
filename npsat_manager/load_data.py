@@ -21,7 +21,7 @@ def load_crops():
 	:return:
 	"""
 
-	crops = [("All Crops", 0), ("Corn", 606), ("Grapes", 2200)]
+	crops = [("All Other Crops", 0), ("Corn", 606), ("Grapes", 2200)]
 
 	for crop in crops:
 		models.Crop(name=crop[0], caml_code=crop[1]).save()

@@ -19,7 +19,7 @@ from npsat_backend import settings
 log = logging.getLogger("npsat.manager")
 
 mantis_area_map_id = {
-			"CentralValley": 1,
+			"Central Valley": 1,
 			"SubBasin": 2,
 			"CVHMFarm": 5,
 			"B118Basin": 4,
@@ -218,7 +218,7 @@ class MantisServer(models.Model):
 		pass
 		#self.get_status()  # saves the object once it determines if the server is online
 
-	def send_command(self, model_run: ModelRun, scenario="CVHM_95_99"):
+	def send_command(self, model_run: ModelRun):
 		"""
 			Sends commands to MantisServer and loads results back
 		:param model_run:
@@ -226,13 +226,10 @@ class MantisServer(models.Model):
 		"""
 		model_run.running = True
 		model_run.save()
-		modifications = model_run.modifications
-
-		number_of_records = len(modifications.all())  # len can be slow with Django, but it'll cache the models for us for later
 
 		log.debug("Connecting to server to send command")
 		try:
-			self._non_async_send(model_run, number_of_records, modifications)
+			self._non_async_send(model_run)
 		except:
 			# on any exception, reset the state of this model run so it will be picked up again later
 			model_run.running = False
@@ -240,7 +237,7 @@ class MantisServer(models.Model):
 			model_run.save()
 			raise
 
-	def _non_async_send(self, model_run, number_of_records, modifications):
+	def _non_async_send(self, model_run):
 		# sanity check: model_run must be attached with at least one region
 		if len(model_run.regions.all()) < 1:
 			return
@@ -250,17 +247,36 @@ class MantisServer(models.Model):
 		# log.debug("Connected successfully")
 
 		region_type = model_run.regions.all()[0].region_type
+		modifications = model_run.modifications.all()
 		# sent the command to the server
 		# detailed input refers to https://github.com/giorgk/Mantis#format-of-input-message
-		command_string = "{} {} {} {}".format(model_run.n_years, model_run.reduction_year, model_run.water_content, model_run.scenario_name)
+		command_string = "{} {} {} {}".format(model_run.n_years, model_run.reduction_year, model_run.water_content, model_run.scenario.name)
 		command_string += " {}".format(mantis_area_map_id[region_type])
+		# use len() to cache db query
 		command_string += " {}".format(len(model_run.regions.all()))
 		if mantis_area_map_id[region_type] != 1:
 			for region in model_run.regions.all():
 				command_string += " {}".format(region.mantis_id)
-		command_string += " {}".format(number_of_records)
+
+		# enable all crops, for those that are not explicitly selected, use data in All other crops
+		num_crops = len(Crop.objects.all())
+		selected_crops = set()
+		all_crops_param = 0
+		crops_input = ''
 		for modification in modifications.all():
-			command_string += " {} {}".format(modification.crop.caml_code, 1 - modification.proportion)
+			if modification.crop.caml_code == 0:
+				all_crops_param = modification.proportion
+				continue
+			# assume all modifications are active in mantis
+			crops_input += " {} {}".format(modification.crop.caml_code, 1 - modification.proportion)
+			selected_crops.add(modification.crop.caml_code)
+		# add all remaining crops
+		for crop in Crop.objects.all():
+			if crop.caml_code not in selected_crops:
+				crops_input += " {} {}".format(crop.caml_code, all_crops_param)
+
+		command_string += ' {}'.format(num_crops)
+		command_string += crops_input
 		command_string += ' ENDofMSG\n'
 		log.info("Command String is: {}".format(command_string))
 		s.send(command_string.encode('utf-8'))
