@@ -88,6 +88,14 @@ class Region(models.Model):
 		return self.name
 
 
+class Scenario(models.Model):
+	"""
+		scenario table, used during model run creation
+	"""
+	name = models.CharField(max_length=255, null=False, blank=False)
+	active_in_mantis = models.BooleanField(default=False)
+
+
 #class AreaGroup(models.Model):
 """
 	Aggregates different areas so they can be referenced together. Won't work as set up - need
@@ -132,7 +140,7 @@ class ModelRun(models.Model):
 	n_years = models.IntegerField(default=100, blank=True)
 	reduction_year = models.IntegerField(default=2020, blank=True)
 	water_content = models.DecimalField(max_digits=5, decimal_places=4)
-	scenario_name = models.CharField(max_length=255)
+	scenario = models.ForeignKey(Scenario, on_delete=models.DO_NOTHING, related_name="model_runs")
 
 	# modifications - backward relationship
 

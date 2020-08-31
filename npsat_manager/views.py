@@ -36,11 +36,22 @@ class CustomAuthToken(ObtainAuthToken):
 			'email': user.email,
 		})
 
+
 class ReadOnly(BasePermission):
 	def has_permission(self, request, view):
 		return request.method in SAFE_METHODS
 
+
 # Create your views here.
+class ScenarioViewSet(viewsets.ModelViewSet):
+	"""
+	scenario name
+
+	Permissions: IsAdminUser | ReadOnly (Admin users can do all operations, others can use HEAD and GET)
+	"""
+	permission_classes = [IsAdminUser | ReadOnly]
+	serializer_class = serializers.ScenarioSerializer
+	queryset = models.Scenario.objects.filter(active_in_mantis=True).order_by('name')
 
 
 class CropViewSet(viewsets.ModelViewSet):
