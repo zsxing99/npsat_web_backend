@@ -313,9 +313,10 @@ def process_results(results, model_run):
 	:param model_run:
 	:return:
 	"""
-	status_message = "Client sent hello message\n"
-	if results.startswith(status_message):
-		results = results[len(status_message):]  # if it starts with a status message, remove it
+	# This line will only appeared if used provided Test Client
+	# status_message = "Client sent hello message\n"
+	# if results.startswith(status_message):
+	# 	results = results[len(status_message):]  # if it starts with a status message, remove it
 
 	results_values = results.split(" ")
 	if results_values[0] == "0":  # Yes, a string 0 because of parsing. It means Mantis failed, store the error message
