@@ -4,12 +4,12 @@ import asyncio
 import socket
 import json
 
+import numpy
+
 import django
 from django.db import models
 from django.core.validators import int_list_validator
 from django.contrib.auth.models import User
-
-from asgiref.sync import sync_to_async
 
 import arrow
 
@@ -142,6 +142,9 @@ class ModelRun(models.Model):
 	water_content = models.DecimalField(max_digits=5, decimal_places=4)
 	scenario = models.ForeignKey(Scenario, on_delete=models.DO_NOTHING, related_name="model_runs")
 
+	# resulting metadata from mantis
+	n_wells = models.IntegerField(null=True, blank=True)
+
 	# modifications - backward relationship
 
 	def load_result(self, values):
@@ -166,6 +169,14 @@ class ModelRun(models.Model):
 
 		self.save()
 
+
+class ResultPercentile(models.Model):
+	model = models.ForeignKey(ModelRun, on_delete=models.CASCADE)
+	percentile = models.IntegerField(null=False)
+	values = SimpleJSONField()
+
+
+"""
 	def get_results_percentile(self, percentile):
 		results_by_year = self.results.aggregate(PercentileAggregate('loading', percentile=percentile, year_field='year'))
 
@@ -178,7 +189,7 @@ class ResultLoading(models.Model):
 	well = models.IntegerField()  # this is just an ID assigned to each stream of values in order coming from Mantis.
 									# each well with the same value is *not* the same between model runs, but allows
 									# us to group within a model run
-
+"""
 
 class Modification(models.Model):
 	class Meta:
@@ -284,11 +295,59 @@ class MantisServer(models.Model):
 		# s.flush()
 		# mantis_writer.drain()  # make sure the full command is sent before proceeding with this function
 
-		results = s.recv(9999999)  # basically, wait for Mantis to close the connection
-		model_run.result_values = str(results)
+		results = s.recv(999999999)  # basically, wait for Mantis to close the connection
+		process_results(results, model_run)
+		# model_run.result_values = str(results)
 		model_run.complete = True
 		model_run.running = False
 		model_run.date_completed = arrow.utcnow().datetime
 		model_run.save()
 
 		log.info("Results saved")
+
+
+def process_results(results, model_run):
+	"""
+		Given the model results,
+	:param results:
+	:param model_run:
+	:return:
+	"""
+	status_message = "Client sent hello message\n"
+	if results.startswith(status_message):
+		results = results[len(status_message):]  # if it starts with a status message, remove it
+
+	results_values = results.split(" ")
+	if results_values[0] == "0":  # Yes, a string 0 because of parsing. It means Mantis failed, store the error message
+		model_run.status_message = results_values
+		return
+
+	# otherwise, Mantis ran, so let's process everything
+
+	# slice off any blanks
+	results_values = [value for value in results_values if value not in ("", "\n")]  # drop any extra empty values we got because they make the total number go off
+	model_run.n_wells = int(results_values[1])
+	results_values = results_values[2:-1]  # first value is status message, second value is number of wells, last is "EndOfMsg"
+
+	# we need to have a number of results divisible by the number of wells and the number of years, so do some checks
+	if len(results_values) % model_run.n_years != 0 or (len(results_values) / model_run.n_wells) != model_run.n_years:
+		error_message = "Got an incorrect number of results from model run. Cannot reliably process to percentiles. You may try again"
+		model_run.status_message = error_message
+		log.error(error_message)  # log it as an error too so it goes to all the appropriate handlers
+		return
+
+	# OK, now we should be safe to proceed
+	# we're going to make a 2 dimensional numpy array where every row is a well and every column is a year
+	# start by making it a numpy array
+	results_array = numpy.array(results_values)
+	results_array = results_array.astype(numpy.float)  # now make all the text into numbers so we can work with it
+	results_2d = results_array.reshape(model_run.n_wells, model_run.n_years)
+
+	# get the percentiles - when a percentile would be between 2 values, get the nearest actual value in the dataset
+	# instead of interpolating between them, mostly because numpy throws errors when we try that.
+	percentiles = numpy.percentile(results_2d, q=settings.PERCENTILE_CALCULATIONS, interpolation="nearest", axis=0)
+	for index, percentile in enumerate(settings.PERCENTILE_CALCULATIONS):
+		current_percentiles = json.dumps(percentiles[index].tolist())  # coerce from numpy to list, then dump as JSON to a string
+		ResultPercentile(model=model_run, percentile=percentile, values=current_percentiles).save()
+
+
