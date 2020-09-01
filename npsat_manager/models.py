@@ -171,7 +171,7 @@ class ModelRun(models.Model):
 
 
 class ResultPercentile(models.Model):
-	model = models.ForeignKey(ModelRun, on_delete=models.CASCADE)
+	model = models.ForeignKey(ModelRun, on_delete=models.CASCADE, related_name="results")
 	percentile = models.IntegerField(null=False)
 	values = SimpleJSONField()
 
@@ -338,14 +338,14 @@ def process_results(results, model_run):
 
 	# OK, now we should be safe to proceed
 	# we're going to make a 2 dimensional numpy array where every row is a well and every column is a year
-	# start by making it a numpy array
-	results_array = numpy.array(results_values)
-	results_array = results_array.astype(numpy.float)  # now make all the text into numbers so we can work with it
+	# start by making it a numpy array and convert to float by default
+	results_array = numpy.array(results_values, dtype=numpy.float)
 	results_2d = results_array.reshape(model_run.n_wells, model_run.n_years)
 
 	# get the percentiles - when a percentile would be between 2 values, get the nearest actual value in the dataset
 	# instead of interpolating between them, mostly because numpy throws errors when we try that.
-	percentiles = numpy.percentile(results_2d, q=settings.PERCENTILE_CALCULATIONS, interpolation="nearest", axis=0)
+	# skip all nan in the mantis output
+	percentiles = numpy.nanpercentile(results_2d, q=settings.PERCENTILE_CALCULATIONS, interpolation="nearest", axis=0)
 	for index, percentile in enumerate(settings.PERCENTILE_CALCULATIONS):
 		current_percentiles = json.dumps(percentiles[index].tolist())  # coerce from numpy to list, then dump as JSON to a string
 		ResultPercentile(model=model_run, percentile=percentile, values=current_percentiles).save()

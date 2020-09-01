@@ -45,6 +45,7 @@ router.register(r'region', views.RegionViewSet, basename="Region")
 router.register(r'model_run', views.ModelRunViewSet, basename="ModelRun")
 router.register(r'modification', views.ModificationViewSet, basename="Modification")
 router.register(r'scenario', views.ScenarioViewSet, basename="Scenario")
+router.register(r'model_results', views.ResultPercentileViewSet, basename="ResultPercentile")
 
 urlpatterns = [
     path('admin/', admin.site.urls),

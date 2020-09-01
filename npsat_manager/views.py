@@ -112,3 +112,18 @@ class ModificationViewSet(viewsets.ModelViewSet):
 
 	def get_queryset(self):
 		return models.Modification.objects.filter(model_run__user=self.request.user).order_by('id')
+
+
+class ResultPercentileViewSet(viewsets.ModelViewSet):
+	"""
+	API endpoint for model results
+	restricted to only allow GET request
+
+	Permission: same as the model run, must be authenticated
+	"""
+	permission_classes = [IsAuthenticated]
+	http_method_names = ["get"]
+
+	serializer_class = serializers.ResultPercentileSerializer
+	queryset = models.ResultPercentile.objects.order_by('id')
+
