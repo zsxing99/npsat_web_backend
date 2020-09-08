@@ -125,5 +125,10 @@ class ResultPercentileViewSet(viewsets.ModelViewSet):
 	http_method_names = ["get"]
 
 	serializer_class = serializers.ResultPercentileSerializer
-	queryset = models.ResultPercentile.objects.order_by('id')
+
+	def get_queryset(self):
+		return models.ResultPercentile.objects\
+			.select_related('model')\
+			.filter(model__user=self.request.user)\
+			.order_by('id')
 
