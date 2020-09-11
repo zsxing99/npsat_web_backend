@@ -112,7 +112,7 @@ class RunResultSerializer(serializers.ModelSerializer):
 		model = models.ModelRun
 		fields = ('id', 'user', 'name', 'description', 'regions', 'modifications', 'unsaturated_zone_travel_time',
 		          'date_submitted', 'date_completed', 'ready', 'complete', 'running', 'status_message', 'n_years', 'water_content',
-				  'reduction_year', 'scenario', 'results', 'n_wells')
+				  'reduction_year', 'scenario', 'results', 'n_wells', 'public', 'isBase')
 		depth = 0  # should mean that modifications get included in the initial request
 
 	def validate(self, data):

@@ -145,6 +145,12 @@ class ModelRun(models.Model):
 	# resulting metadata from mantis
 	n_wells = models.IntegerField(null=True, blank=True)
 
+	# visibility to the public
+	public = models.BooleanField(null=False, blank=False, default=False)
+
+	# whether current model is a base model for its scenario
+	isBase = models.BooleanField(null=False, blank=False, default=False)
+
 	# modifications - backward relationship
 
 	def load_result(self, values):
