@@ -14,6 +14,7 @@ from npsat_manager.support import tokens  # token code makes sure that all users
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
+from django.db.models import Q
 
 
 class CustomAuthToken(ObtainAuthToken):
@@ -91,13 +92,36 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 	Test
 
 	Permissions: Must be authenticated
+
+	Optional params:
+		public: true(default), if the user want to include public model
+		isBase: true(default), if the user want to include base model
+		origin: true(default), if the user want to include self-created model
+	These params are additional filter to sift models to return the model list
 	"""
 	permission_classes = [IsAuthenticated]
 
 	serializer_class = serializers.RunResultSerializer
 
 	def get_queryset(self):
-		return models.ModelRun.objects.filter(user=self.request.user).order_by('id')
+		include_public = self.request.query_params.get("public", "true")
+		include_base = self.request.query_params.get("isBase", "true")
+		include_origin = self.request.query_params.get("origin", "true")
+		# all objects available for user
+
+		queryset = models.ModelRun.objects.filter(
+			Q(user=self.request.user) | Q(public=True) | Q(isBase=True)
+		)
+
+		query = None
+		if include_public == "true":
+			query = Q(public=True)
+		if include_base == "true":
+			query = Q(isBase=True) if not query else query | Q(isBase=True)
+		if include_origin == "true":
+			query = Q(user=self.request.user) if not query else query | Q(user=self.request.user)
+
+		return models.ModelRun.objects.filter(query) if query else []
 
 
 class ModificationViewSet(viewsets.ModelViewSet):
