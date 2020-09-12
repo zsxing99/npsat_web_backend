@@ -108,10 +108,12 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 		include_base = self.request.query_params.get("isBase", "true")
 		include_origin = self.request.query_params.get("origin", "true")
 		# all objects available for user
-
-		queryset = models.ModelRun.objects.filter(
-			Q(user=self.request.user) | Q(public=True) | Q(isBase=True)
-		)
+		# here we are doing a logic like this:
+		# as long as the model satisfies any of the true conditions, include it
+		# An alternative one is to exclude the false conditions
+		# queryset = models.ModelRun.objects.filter(
+		# 	Q(user=self.request.user) | Q(public=True) | Q(isBase=True)
+		# )
 
 		query = None
 		if include_public == "true":
