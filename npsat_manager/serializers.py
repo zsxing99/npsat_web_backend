@@ -132,3 +132,11 @@ class RunResultSerializer(serializers.ModelSerializer):
 
 		return model_run
 
+	def update(self, instance, validated_data):
+		"""
+		currently only allow 'public' to be updated.
+		"""
+		instance.public = validated_data.get('public', instance.public)
+		instance.save()
+		return instance
+

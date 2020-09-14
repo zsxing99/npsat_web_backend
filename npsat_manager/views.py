@@ -110,7 +110,7 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 		# all objects available for user
 		# here we are doing a logic like this:
 		# as long as the model satisfies any of the true conditions, include it
-		# An alternative one is to exclude the false conditions
+		# An alternative logic is to exclude the false conditions
 		# queryset = models.ModelRun.objects.filter(
 		# 	Q(user=self.request.user) | Q(public=True) | Q(isBase=True)
 		# )
