@@ -132,6 +132,7 @@ class RunResultSerializer(serializers.ModelSerializer):
 
 		# model is ready to run
 		model_run.status = 1
+		model_run.save()
 
 		return model_run
 
