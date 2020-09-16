@@ -111,7 +111,7 @@ class RunResultSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = models.ModelRun
 		fields = ('id', 'user', 'name', 'description', 'regions', 'modifications', 'unsaturated_zone_travel_time',
-		          'date_submitted', 'date_completed', 'ready', 'complete', 'running', 'status_message', 'n_years', 'water_content',
+		          'date_submitted', 'date_completed', 'status', 'status_message', 'n_years', 'water_content',
 				  'reduction_year', 'scenario', 'results', 'n_wells', 'public', 'isBase')
 		depth = 0  # should mean that modifications get included in the initial request
 
@@ -129,6 +129,9 @@ class RunResultSerializer(serializers.ModelSerializer):
 
 		for region in regions_data:
 			model_run.regions.add(models.Region.objects.get(id=region['id']))
+
+		# model is ready to run
+		model_run.status = 1
 
 		return model_run
 
