@@ -95,7 +95,7 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 
 	Optional params:
 		filter:
-			status: all(default) or a int array, this will filter status
+			status: all(default) or a int array joined by comma, this will filter status
 		tags:
 			public: true(default), if the user want to include public model
 			isBase: true(default), if the user want to include base model
@@ -103,8 +103,7 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 		search:
 			search: false(default) or string, this will search the model name and desc
 		sorter:
-			date_created: false(default)
-			date_completed: false(default)
+			false(default) or formatted string as `{param},{ascend | descend}`
 	These params are additional filter to sift models to return the model list
 	"""
 	permission_classes = [IsAuthenticated]
@@ -128,8 +127,8 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 		search_text = self.request.query_params.get("search", False)
 
 		# sorters
-		date_created = self.request.query_params.get("date_created", False)
-		date_completed = self.request.query_params.get("date_completed", False)
+		sorter = self.request.query_params.get("sorter", False)
+		print(sorter)
 
 		status = self.request.query_params.get("status", False)
 
@@ -141,7 +140,24 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 		if include_origin == "true":
 			query = Q(user=self.request.user) if not query else query | Q(user=self.request.user)
 
-		return models.ModelRun.objects.filter(query) if query else []
+		if not query:
+			return []
+		results = models.ModelRun.objects.filter(query)
+		if status:
+			results = results.filter(status__in=status.split(','))
+
+		if search_text:
+			query = Q(name__contains=search_text) | Q(description__contains=search_text)
+			results = results.filter(query)
+
+		if sorter:
+			sorter_field, order = sorter.split(',')
+			if order == 'ascend':
+				return results.order_by(sorter_field)
+			else:
+				return results.order_by('-' + sorter_field)
+
+		return results.order_by('id')
 
 
 class ModificationViewSet(viewsets.ModelViewSet):
