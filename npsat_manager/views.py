@@ -94,9 +94,16 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 	Permissions: Must be authenticated
 
 	Optional params:
-		public: true(default), if the user want to include public model
-		isBase: true(default), if the user want to include base model
-		origin: true(default), if the user want to include self-created model
+		tags:
+			public: true(default), if the user want to include public model
+			isBase: true(default), if the user want to include base model
+			origin: true(default), if the user want to include self-created model
+		search:
+			search: false(default) or string, this will search the model name and desc
+		sorter:
+			status: all(default) or a int array, this will filter status
+			date_created: false(default)
+			date_completed: false(default)
 	These params are additional filter to sift models to return the model list
 	"""
 	permission_classes = [IsAuthenticated]
@@ -104,6 +111,7 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 	serializer_class = serializers.RunResultSerializer
 
 	def get_queryset(self):
+		# tags
 		include_public = self.request.query_params.get("public", "true")
 		include_base = self.request.query_params.get("isBase", "true")
 		include_origin = self.request.query_params.get("origin", "true")
@@ -114,6 +122,14 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 		# queryset = models.ModelRun.objects.filter(
 		# 	Q(user=self.request.user) | Q(public=True) | Q(isBase=True)
 		# )
+
+		# search
+		search_text = self.request.query_params.get("search", False)
+
+		# sorters
+		status = self.request.query_params.get("status", False)
+		date_created = self.request.query_params.get("date_created", False)
+		date_completed = self.request.query_params.get("date_completed", False)
 
 		query = None
 		if include_public == "true":
