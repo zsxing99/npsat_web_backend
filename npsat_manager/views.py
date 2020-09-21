@@ -94,6 +94,8 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 	Permissions: Must be authenticated
 
 	Optional params:
+		filter:
+			status: all(default) or a int array, this will filter status
 		tags:
 			public: true(default), if the user want to include public model
 			isBase: true(default), if the user want to include base model
@@ -101,7 +103,6 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 		search:
 			search: false(default) or string, this will search the model name and desc
 		sorter:
-			status: all(default) or a int array, this will filter status
 			date_created: false(default)
 			date_completed: false(default)
 	These params are additional filter to sift models to return the model list
@@ -127,9 +128,10 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 		search_text = self.request.query_params.get("search", False)
 
 		# sorters
-		status = self.request.query_params.get("status", False)
 		date_created = self.request.query_params.get("date_created", False)
 		date_completed = self.request.query_params.get("date_completed", False)
+
+		status = self.request.query_params.get("status", False)
 
 		query = None
 		if include_public == "true":
