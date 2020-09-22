@@ -153,7 +153,7 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 			results = results.filter(query)
 
 		if scenarios:
-			results = results.filter(scenario__in=scenarios.spllit(','))
+			results = results.filter(scenario__in=scenarios.split(','))
 
 		if sorter:
 			sorter_field, order = sorter.split(',')
