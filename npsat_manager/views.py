@@ -100,6 +100,7 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 			public: true(default), if the user want to include public model
 			isBase: true(default), if the user want to include base model
 			origin: true(default), if the user want to include self-created model
+			scenarios: false(default) ro a int array joined by comma, this will filter scenarios
 		search:
 			search: false(default) or string, this will search the model name and desc
 		sorter:
@@ -128,9 +129,10 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 
 		# sorters
 		sorter = self.request.query_params.get("sorter", False)
-		print(sorter)
 
+		# filter
 		status = self.request.query_params.get("status", False)
+		scenarios = self.request.query_params.get("scenarios", False)
 
 		query = None
 		if include_public == "true":
@@ -149,6 +151,9 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 		if search_text:
 			query = Q(name__contains=search_text) | Q(description__contains=search_text)
 			results = results.filter(query)
+
+		if scenarios:
+			results = results.filter(scenario__in=scenarios.spllit(','))
 
 		if sorter:
 			sorter_field, order = sorter.split(',')
