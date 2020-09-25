@@ -152,7 +152,7 @@ class ModelRun(models.Model):
 	# other model specs
 	n_years = models.IntegerField(default=100, blank=True)
 	reduction_year = models.IntegerField(default=2020, blank=True)
-	water_content = models.DecimalField(max_digits=5, decimal_places=4)
+	water_content = models.DecimalField(max_digits=5, decimal_places=4, default=0)
 	scenario = models.ForeignKey(Scenario, on_delete=models.DO_NOTHING, related_name="model_runs")
 
 	# resulting metadata from mantis
