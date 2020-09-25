@@ -131,7 +131,7 @@ class RunResultSerializer(serializers.ModelSerializer):
 			model_run.regions.add(models.Region.objects.get(id=region['id']))
 
 		# model is ready to run
-		model_run.status = 1
+		model_run.status = models.ModelRun.READY
 		model_run.save()
 
 		return model_run

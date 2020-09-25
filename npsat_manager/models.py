@@ -121,13 +121,21 @@ class ModelRun(models.Model):
 	name = models.CharField(max_length=255, null=False, blank=False)
 	description = models.TextField(null=True, blank=True)
 
-	# ready = models.BooleanField(default=False, null=False)  # marked after the web interface adds all modifications
-	# running = models.BooleanField(default=False, null=False)  # marked while in processing
-	# complete = models.BooleanField(default=False, null=False)  # tracks if the model has actually been run for this result yet
-
 	# status is used to replace ready, complete, and running
 	# status MACRO: 0 - not ready; 1 - ready; 2 - running; 3 - complete; 4 - error
-	status = models.IntegerField(default=0, null=False)
+	NOT_READY = 0
+	READY = 1
+	RUNNING = 2
+	COMPLETED = 3
+	ERROR = 4
+	STATUS_CHOICE = [
+		(NOT_READY, 0),
+		(READY, 1),
+		(RUNNING, 2),
+		(COMPLETED, 3),
+		(ERROR, 4),
+	]
+	status = models.IntegerField(default=NOT_READY, choices=STATUS_CHOICE, null=False)
 
 	status_message = models.CharField(max_length=2048, default="", null=True, blank=True)  # for status info or error messages
 	result_values = models.TextField(validators=[int_list_validator], default="", null=True, blank=True)
@@ -171,11 +179,11 @@ class ModelRun(models.Model):
 			# TODO: Fix below
 			results = None  # mantis.run_mantis(self.modifications.all())
 			self.load_result(values=results)
-			self.status = 3
+			self.status = self.COMPLETED
 			self.status_message = "Successfully run"
 		except:
 			log.error("Failed to run Mantis. Error was: {}".format(traceback.format_exc()))
-			self.status = 4
+			self.status = self.ERROR
 			self.status_message = "Model run failed. This error has been reported."
 
 		self.save()
@@ -246,7 +254,7 @@ class MantisServer(models.Model):
 		:param model_run:
 		:return:
 		"""
-		model_run.status = 2
+		model_run.status = ModelRun.RUNNING
 		model_run.save()
 
 		log.debug("Connecting to server to send command")
@@ -254,7 +262,7 @@ class MantisServer(models.Model):
 			self._non_async_send(model_run)
 		except:
 			# on any exception, reset the state of this model run so it will be picked up again later
-			model_run.status = 4
+			model_run.status = ModelRun.ERROR
 			model_run.save()
 			raise
 
@@ -308,7 +316,7 @@ class MantisServer(models.Model):
 		results = s.recv(999999999)  # basically, wait for Mantis to close the connection
 		process_results(results, model_run)
 		# model_run.result_values = str(results)
-		model_run.status = 3
+		model_run.status = ModelRun.COMPLETED
 		model_run.date_completed = arrow.utcnow().datetime
 		model_run.save()
 
@@ -330,7 +338,7 @@ def process_results(results, model_run):
 	results_values = results.split(" ")
 	if results_values[0] == "0":  # Yes, a string 0 because of parsing. It means Mantis failed, store the error message
 		model_run.status_message = results_values
-		model_run.status = 4
+		model_run.status = ModelRun.ERROR
 		model_run.save()
 		return
 
@@ -344,7 +352,7 @@ def process_results(results, model_run):
 	# we need to have a number of results divisible by the number of wells and the number of years, so do some checks
 	if len(results_values) % model_run.n_years != 0 or (len(results_values) / model_run.n_wells) != model_run.n_years:
 		error_message = "Got an incorrect number of results from model run. Cannot reliably process to percentiles. You may try again"
-		model_run.status = 4
+		model_run.status = ModelRun.ERROR
 		model_run.status_message = error_message
 		log.error(error_message)  # log it as an error too so it goes to all the appropriate handlers
 		return
