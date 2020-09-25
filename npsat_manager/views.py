@@ -118,8 +118,13 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 		instance = self.get_object()
 		# whether the client sends note that include base model
 		include_base = self.request.query_params.get("includeBase", False)
+		base_model = None
 		if include_base and not instance.isBase:
-			base_model = models.ModelRun.objects.get(scenario=instance.scenario, isBase=True)
+			try:
+				base_model = models.ModelRun.objects.get(scenario=instance.scenario, isBase=True)
+			except models.ModelRun.DoesNotExist:
+				base_model = None
+		if base_model:
 			serializer = self.get_serializer([instance, base_model], many=True)
 		else:
 			serializer = self.get_serializer(instance)
