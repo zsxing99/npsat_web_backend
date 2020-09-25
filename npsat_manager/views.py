@@ -193,7 +193,6 @@ class ResultPercentileViewSet(viewsets.ModelViewSet):
 
 	def get_queryset(self):
 		return models.ResultPercentile.objects\
-			.select_related('model')\
 			.filter(
 				Q(model__user=self.request.user) |
 				Q(model__public=True) |
