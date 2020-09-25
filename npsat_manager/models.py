@@ -162,7 +162,7 @@ class ModelRun(models.Model):
 	public = models.BooleanField(null=False, blank=False, default=False)
 
 	# whether current model is a base model for its scenario
-	isBase = models.BooleanField(null=False, blank=False, default=False)
+	is_base = models.BooleanField(null=False, blank=False, default=False)
 
 	# modifications - backward relationship
 

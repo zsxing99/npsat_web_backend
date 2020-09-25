@@ -119,9 +119,9 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 		# whether the client sends note that include base model
 		include_base = self.request.query_params.get("includeBase", False)
 		base_model = None
-		if include_base and not instance.isBase:
+		if include_base and not instance.is_base:
 			try:
-				base_model = models.ModelRun.objects.get(scenario=instance.scenario, isBase=True)
+				base_model = models.ModelRun.objects.get(scenario=instance.scenario, is_base=True)
 			except models.ModelRun.DoesNotExist:
 				base_model = None
 		if base_model:
@@ -157,7 +157,7 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 		if include_public == "true":
 			query = Q(public=True)
 		if include_base == "true":
-			query = Q(isBase=True) if not query else query | Q(isBase=True)
+			query = Q(is_base=True) if not query else query | Q(is_base=True)
 		if include_origin == "true":
 			query = Q(user=self.request.user) if not query else query | Q(user=self.request.user)
 
@@ -215,7 +215,7 @@ class ResultPercentileViewSet(viewsets.ModelViewSet):
 			.filter(
 				Q(model__user=self.request.user) |
 				Q(model__public=True) |
-				Q(model__isBase=True)
+				Q(model__is_base=True)
 			)\
 			.order_by('id')
 
