@@ -118,6 +118,14 @@ class ModelRun(models.Model):
 		The central object for configuring an individual run of the model - is related to modification objects from the
 		modification side.
 	"""
+	class Meta:
+		constraints = [
+			models.UniqueConstraint(
+				fields=['scenario'],
+				condition=models.Q(is_base=True),
+				name='unique_base_model_scenario'
+			),
+		]
 	name = models.CharField(max_length=255, null=False, blank=False)
 	description = models.TextField(null=True, blank=True)
 
