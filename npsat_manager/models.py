@@ -118,12 +118,33 @@ class ModelRun(models.Model):
 		The central object for configuring an individual run of the model - is related to modification objects from the
 		modification side.
 	"""
+	class Meta:
+		constraints = [
+			models.UniqueConstraint(
+				fields=['scenario'],
+				condition=models.Q(is_base=True),
+				name='unique_base_model_scenario'
+			),
+		]
 	name = models.CharField(max_length=255, null=False, blank=False)
 	description = models.TextField(null=True, blank=True)
 
-	ready = models.BooleanField(default=False, null=False)  # marked after the web interface adds all modifications
-	running = models.BooleanField(default=False, null=False)  # marked while in processing
-	complete = models.BooleanField(default=False, null=False)  # tracks if the model has actually been run for this result yet
+	# status is used to replace ready, complete, and running
+	# status MACRO: 0 - not ready; 1 - ready; 2 - running; 3 - complete; 4 - error
+	NOT_READY = 0
+	READY = 1
+	RUNNING = 2
+	COMPLETED = 3
+	ERROR = 4
+	STATUS_CHOICE = [
+		(NOT_READY, 0),
+		(READY, 1),
+		(RUNNING, 2),
+		(COMPLETED, 3),
+		(ERROR, 4),
+	]
+	status = models.IntegerField(default=NOT_READY, choices=STATUS_CHOICE, null=False)
+
 	status_message = models.CharField(max_length=2048, default="", null=True, blank=True)  # for status info or error messages
 	result_values = models.TextField(validators=[int_list_validator], default="", null=True, blank=True)
 	date_submitted = models.DateTimeField(default=django.utils.timezone.now, null=True, blank=True)
@@ -139,11 +160,17 @@ class ModelRun(models.Model):
 	# other model specs
 	n_years = models.IntegerField(default=100, blank=True)
 	reduction_year = models.IntegerField(default=2020, blank=True)
-	water_content = models.DecimalField(max_digits=5, decimal_places=4)
+	water_content = models.DecimalField(max_digits=5, decimal_places=4, default=0)
 	scenario = models.ForeignKey(Scenario, on_delete=models.DO_NOTHING, related_name="model_runs")
 
 	# resulting metadata from mantis
 	n_wells = models.IntegerField(null=True, blank=True)
+
+	# visibility to the public
+	public = models.BooleanField(null=False, blank=False, default=False)
+
+	# whether current model is a base model for its scenario
+	is_base = models.BooleanField(null=False, blank=False, default=False)
 
 	# modifications - backward relationship
 
@@ -160,18 +187,18 @@ class ModelRun(models.Model):
 			# TODO: Fix below
 			results = None  # mantis.run_mantis(self.modifications.all())
 			self.load_result(values=results)
-			self.complete = True
+			self.status = self.COMPLETED
 			self.status_message = "Successfully run"
 		except:
 			log.error("Failed to run Mantis. Error was: {}".format(traceback.format_exc()))
-			self.complete = True
+			self.status = self.ERROR
 			self.status_message = "Model run failed. This error has been reported."
 
 		self.save()
 
 
 class ResultPercentile(models.Model):
-	model = models.ForeignKey(ModelRun, on_delete=models.CASCADE)
+	model = models.ForeignKey(ModelRun, on_delete=models.CASCADE, related_name="results")
 	percentile = models.IntegerField(null=False)
 	values = SimpleJSONField()
 
@@ -235,7 +262,7 @@ class MantisServer(models.Model):
 		:param model_run:
 		:return:
 		"""
-		model_run.running = True
+		model_run.status = ModelRun.RUNNING
 		model_run.save()
 
 		log.debug("Connecting to server to send command")
@@ -243,8 +270,7 @@ class MantisServer(models.Model):
 			self._non_async_send(model_run)
 		except:
 			# on any exception, reset the state of this model run so it will be picked up again later
-			model_run.running = False
-			model_run.complete = False
+			model_run.status = ModelRun.ERROR
 			model_run.save()
 			raise
 
@@ -298,8 +324,7 @@ class MantisServer(models.Model):
 		results = s.recv(999999999)  # basically, wait for Mantis to close the connection
 		process_results(results, model_run)
 		# model_run.result_values = str(results)
-		model_run.complete = True
-		model_run.running = False
+		model_run.status = ModelRun.COMPLETED
 		model_run.date_completed = arrow.utcnow().datetime
 		model_run.save()
 
@@ -313,13 +338,16 @@ def process_results(results, model_run):
 	:param model_run:
 	:return:
 	"""
-	status_message = "Client sent hello message\n"
-	if results.startswith(status_message):
-		results = results[len(status_message):]  # if it starts with a status message, remove it
+	# This line will only appeared if used provided Test Client
+	# status_message = "Client sent hello message\n"
+	# if results.startswith(status_message):
+	# 	results = results[len(status_message):]  # if it starts with a status message, remove it
 
 	results_values = results.split(" ")
 	if results_values[0] == "0":  # Yes, a string 0 because of parsing. It means Mantis failed, store the error message
 		model_run.status_message = results_values
+		model_run.status = ModelRun.ERROR
+		model_run.save()
 		return
 
 	# otherwise, Mantis ran, so let's process everything
@@ -332,22 +360,24 @@ def process_results(results, model_run):
 	# we need to have a number of results divisible by the number of wells and the number of years, so do some checks
 	if len(results_values) % model_run.n_years != 0 or (len(results_values) / model_run.n_wells) != model_run.n_years:
 		error_message = "Got an incorrect number of results from model run. Cannot reliably process to percentiles. You may try again"
+		model_run.status = ModelRun.ERROR
 		model_run.status_message = error_message
 		log.error(error_message)  # log it as an error too so it goes to all the appropriate handlers
 		return
 
 	# OK, now we should be safe to proceed
 	# we're going to make a 2 dimensional numpy array where every row is a well and every column is a year
-	# start by making it a numpy array
-	results_array = numpy.array(results_values)
-	results_array = results_array.astype(numpy.float)  # now make all the text into numbers so we can work with it
+	# start by making it a numpy array and convert to float by default
+	results_array = numpy.array(results_values, dtype=numpy.float)
 	results_2d = results_array.reshape(model_run.n_wells, model_run.n_years)
 
 	# get the percentiles - when a percentile would be between 2 values, get the nearest actual value in the dataset
 	# instead of interpolating between them, mostly because numpy throws errors when we try that.
-	percentiles = numpy.percentile(results_2d, q=settings.PERCENTILE_CALCULATIONS, interpolation="nearest", axis=0)
+	# skip all nan in the mantis output
+	percentiles = numpy.nanpercentile(results_2d, q=settings.PERCENTILE_CALCULATIONS, interpolation="nearest", axis=0)
 	for index, percentile in enumerate(settings.PERCENTILE_CALCULATIONS):
 		current_percentiles = json.dumps(percentiles[index].tolist())  # coerce from numpy to list, then dump as JSON to a string
 		ResultPercentile(model=model_run, percentile=percentile, values=current_percentiles).save()
 
+	model_run.save()
 

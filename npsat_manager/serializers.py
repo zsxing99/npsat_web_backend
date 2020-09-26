@@ -87,16 +87,32 @@ class NestedModificationSerializer(serializers.ModelSerializer):
 		fields = ('id', 'crop', 'proportion')
 
 
+class ResultPercentileSerializer(serializers.ModelSerializer):
+	values = serializers.JSONField(read_only=True, binary=False)
+
+	class Meta:
+		model = models.ResultPercentile
+		fields = ('id', 'values', 'percentile')
+
+
+class NestedResultPercentileSerializer(serializers.ModelSerializer):
+
+	class Meta:
+		model = models.ResultPercentile
+		fields = ('id', 'percentile')
+
+
 class RunResultSerializer(serializers.ModelSerializer):
 	modifications = NestedModificationSerializer(many=True, allow_null=True, partial=True)
 	regions = NestedRegionSerializer(many=True, allow_null=True, partial=True, read_only=False)
 	scenario = ScenarioSerializer(many=False, read_only=False, allow_null=True)
+	results = NestedResultPercentileSerializer(many=True, read_only=True)
 
 	class Meta:
 		model = models.ModelRun
-		fields = ('id', 'user', 'name', 'description', 'regions', 'modifications', 'result_values', 'unsaturated_zone_travel_time',
-		          'date_submitted', 'date_completed', 'ready', 'complete', 'running', 'status_message', 'n_years', 'water_content',
-				  'reduction_year', 'scenario')
+		fields = ('id', 'user', 'name', 'description', 'regions', 'modifications', 'unsaturated_zone_travel_time',
+		          'date_submitted', 'date_completed', 'status', 'status_message', 'n_years', 'water_content',
+				  'reduction_year', 'scenario', 'results', 'n_wells', 'public', 'is_base')
 		depth = 0  # should mean that modifications get included in the initial request
 
 	def validate(self, data):
@@ -114,5 +130,17 @@ class RunResultSerializer(serializers.ModelSerializer):
 		for region in regions_data:
 			model_run.regions.add(models.Region.objects.get(id=region['id']))
 
+		# model is ready to run
+		model_run.status = models.ModelRun.READY
+		model_run.save()
+
 		return model_run
+
+	def update(self, instance, validated_data):
+		"""
+		currently only allow 'public' to be updated.
+		"""
+		instance.public = validated_data.get('public', instance.public)
+		instance.save()
+		return instance
 
