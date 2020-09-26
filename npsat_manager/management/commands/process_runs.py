@@ -32,7 +32,7 @@ class Command(BaseCommand):
 				self.mantis_server.send_command(model_run=run)
 
 	def _get_runs(self):
-		new_runs = models.ModelRun.objects.filter(ready=True, running=False, complete=False)\
+		new_runs = models.ModelRun.objects.filter(status=models.ModelRun.READY)\
 											.order_by('date_submitted')\
 											.prefetch_related('modifications')  # get runs that aren't complete
 		self._waiting_runs = new_runs

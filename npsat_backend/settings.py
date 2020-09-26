@@ -13,6 +13,8 @@ from npsat_backend.local_settings import *
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
+PERCENTILE_CALCULATIONS = (1,2,3,4,5,10,15,20,25,50,75,80,85,90,95,96,97,98,99)
+
 
 # Application definition
 

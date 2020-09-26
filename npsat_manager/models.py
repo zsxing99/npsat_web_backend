@@ -4,12 +4,12 @@ import asyncio
 import socket
 import json
 
+import numpy
+
 import django
 from django.db import models
 from django.core.validators import int_list_validator
 from django.contrib.auth.models import User
-
-from asgiref.sync import sync_to_async
 
 import arrow
 
@@ -19,7 +19,7 @@ from npsat_backend import settings
 log = logging.getLogger("npsat.manager")
 
 mantis_area_map_id = {
-			"CentralValley": 1,
+			"Central Valley": 1,
 			"SubBasin": 2,
 			"CVHMFarm": 5,
 			"B118Basin": 4,
@@ -88,6 +88,14 @@ class Region(models.Model):
 		return self.name
 
 
+class Scenario(models.Model):
+	"""
+		scenario table, used during model run creation
+	"""
+	name = models.CharField(max_length=255, null=False, blank=False)
+	active_in_mantis = models.BooleanField(default=False)
+
+
 #class AreaGroup(models.Model):
 """
 	Aggregates different areas so they can be referenced together. Won't work as set up - need
@@ -110,12 +118,33 @@ class ModelRun(models.Model):
 		The central object for configuring an individual run of the model - is related to modification objects from the
 		modification side.
 	"""
+	class Meta:
+		constraints = [
+			models.UniqueConstraint(
+				fields=['scenario'],
+				condition=models.Q(is_base=True),
+				name='unique_base_model_scenario'
+			),
+		]
 	name = models.CharField(max_length=255, null=False, blank=False)
 	description = models.TextField(null=True, blank=True)
 
-	ready = models.BooleanField(default=False, null=False)  # marked after the web interface adds all modifications
-	running = models.BooleanField(default=False, null=False)  # marked while in processing
-	complete = models.BooleanField(default=False, null=False)  # tracks if the model has actually been run for this result yet
+	# status is used to replace ready, complete, and running
+	# status MACRO: 0 - not ready; 1 - ready; 2 - running; 3 - complete; 4 - error
+	NOT_READY = 0
+	READY = 1
+	RUNNING = 2
+	COMPLETED = 3
+	ERROR = 4
+	STATUS_CHOICE = [
+		(NOT_READY, 0),
+		(READY, 1),
+		(RUNNING, 2),
+		(COMPLETED, 3),
+		(ERROR, 4),
+	]
+	status = models.IntegerField(default=NOT_READY, choices=STATUS_CHOICE, null=False)
+
 	status_message = models.CharField(max_length=2048, default="", null=True, blank=True)  # for status info or error messages
 	result_values = models.TextField(validators=[int_list_validator], default="", null=True, blank=True)
 	date_submitted = models.DateTimeField(default=django.utils.timezone.now, null=True, blank=True)
@@ -131,8 +160,17 @@ class ModelRun(models.Model):
 	# other model specs
 	n_years = models.IntegerField(default=100, blank=True)
 	reduction_year = models.IntegerField(default=2020, blank=True)
-	water_content = models.DecimalField(max_digits=5, decimal_places=4)
-	scenario_name = models.CharField(max_length=255)
+	water_content = models.DecimalField(max_digits=5, decimal_places=4, default=0)
+	scenario = models.ForeignKey(Scenario, on_delete=models.DO_NOTHING, related_name="model_runs")
+
+	# resulting metadata from mantis
+	n_wells = models.IntegerField(null=True, blank=True)
+
+	# visibility to the public
+	public = models.BooleanField(null=False, blank=False, default=False)
+
+	# whether current model is a base model for its scenario
+	is_base = models.BooleanField(null=False, blank=False, default=False)
 
 	# modifications - backward relationship
 
@@ -149,15 +187,23 @@ class ModelRun(models.Model):
 			# TODO: Fix below
 			results = None  # mantis.run_mantis(self.modifications.all())
 			self.load_result(values=results)
-			self.complete = True
+			self.status = self.COMPLETED
 			self.status_message = "Successfully run"
 		except:
 			log.error("Failed to run Mantis. Error was: {}".format(traceback.format_exc()))
-			self.complete = True
+			self.status = self.ERROR
 			self.status_message = "Model run failed. This error has been reported."
 
 		self.save()
 
+
+class ResultPercentile(models.Model):
+	model = models.ForeignKey(ModelRun, on_delete=models.CASCADE, related_name="results")
+	percentile = models.IntegerField(null=False)
+	values = SimpleJSONField()
+
+
+"""
 	def get_results_percentile(self, percentile):
 		results_by_year = self.results.aggregate(PercentileAggregate('loading', percentile=percentile, year_field='year'))
 
@@ -170,7 +216,7 @@ class ResultLoading(models.Model):
 	well = models.IntegerField()  # this is just an ID assigned to each stream of values in order coming from Mantis.
 									# each well with the same value is *not* the same between model runs, but allows
 									# us to group within a model run
-
+"""
 
 class Modification(models.Model):
 	class Meta:
@@ -210,29 +256,25 @@ class MantisServer(models.Model):
 		pass
 		#self.get_status()  # saves the object once it determines if the server is online
 
-	def send_command(self, model_run: ModelRun, scenario="CVHM_95_99"):
+	def send_command(self, model_run: ModelRun):
 		"""
 			Sends commands to MantisServer and loads results back
 		:param model_run:
 		:return:
 		"""
-		model_run.running = True
+		model_run.status = ModelRun.RUNNING
 		model_run.save()
-		modifications = model_run.modifications
-
-		number_of_records = len(modifications.all())  # len can be slow with Django, but it'll cache the models for us for later
 
 		log.debug("Connecting to server to send command")
 		try:
-			self._non_async_send(model_run, number_of_records, modifications)
+			self._non_async_send(model_run)
 		except:
 			# on any exception, reset the state of this model run so it will be picked up again later
-			model_run.running = False
-			model_run.complete = False
+			model_run.status = ModelRun.ERROR
 			model_run.save()
 			raise
 
-	def _non_async_send(self, model_run, number_of_records, modifications):
+	def _non_async_send(self, model_run):
 		# sanity check: model_run must be attached with at least one region
 		if len(model_run.regions.all()) < 1:
 			return
@@ -242,17 +284,36 @@ class MantisServer(models.Model):
 		# log.debug("Connected successfully")
 
 		region_type = model_run.regions.all()[0].region_type
+		modifications = model_run.modifications.all()
 		# sent the command to the server
 		# detailed input refers to https://github.com/giorgk/Mantis#format-of-input-message
-		command_string = "{} {} {} {}".format(model_run.n_years, model_run.reduction_year, model_run.water_content, model_run.scenario_name)
+		command_string = "{} {} {} {}".format(model_run.n_years, model_run.reduction_year, model_run.water_content, model_run.scenario.name)
 		command_string += " {}".format(mantis_area_map_id[region_type])
+		# use len() to cache db query
 		command_string += " {}".format(len(model_run.regions.all()))
 		if mantis_area_map_id[region_type] != 1:
 			for region in model_run.regions.all():
 				command_string += " {}".format(region.mantis_id)
-		command_string += " {}".format(number_of_records)
+
+		# enable all crops, for those that are not explicitly selected, use data in All other crops
+		num_crops = len(Crop.objects.all())
+		selected_crops = set()
+		all_crops_param = 0
+		crops_input = ''
 		for modification in modifications.all():
-			command_string += " {} {}".format(modification.crop.caml_code, 1 - modification.proportion)
+			if modification.crop.caml_code == 0:
+				all_crops_param = modification.proportion
+				continue
+			# assume all modifications are active in mantis
+			crops_input += " {} {}".format(modification.crop.caml_code, 1 - modification.proportion)
+			selected_crops.add(modification.crop.caml_code)
+		# add all remaining crops
+		for crop in Crop.objects.all():
+			if crop.caml_code not in selected_crops:
+				crops_input += " {} {}".format(crop.caml_code, all_crops_param)
+
+		command_string += ' {}'.format(num_crops)
+		command_string += crops_input
 		command_string += ' ENDofMSG\n'
 		log.info("Command String is: {}".format(command_string))
 		s.send(command_string.encode('utf-8'))
@@ -260,11 +321,63 @@ class MantisServer(models.Model):
 		# s.flush()
 		# mantis_writer.drain()  # make sure the full command is sent before proceeding with this function
 
-		results = s.recv(9999999)  # basically, wait for Mantis to close the connection
-		model_run.result_values = str(results)
-		model_run.complete = True
-		model_run.running = False
+		results = s.recv(999999999)  # basically, wait for Mantis to close the connection
+		process_results(results, model_run)
+		# model_run.result_values = str(results)
+		model_run.status = ModelRun.COMPLETED
 		model_run.date_completed = arrow.utcnow().datetime
 		model_run.save()
 
 		log.info("Results saved")
+
+
+def process_results(results, model_run):
+	"""
+		Given the model results,
+	:param results:
+	:param model_run:
+	:return:
+	"""
+	# This line will only appeared if used provided Test Client
+	# status_message = "Client sent hello message\n"
+	# if results.startswith(status_message):
+	# 	results = results[len(status_message):]  # if it starts with a status message, remove it
+
+	results_values = results.split(" ")
+	if results_values[0] == "0":  # Yes, a string 0 because of parsing. It means Mantis failed, store the error message
+		model_run.status_message = results_values
+		model_run.status = ModelRun.ERROR
+		model_run.save()
+		return
+
+	# otherwise, Mantis ran, so let's process everything
+
+	# slice off any blanks
+	results_values = [value for value in results_values if value not in ("", "\n")]  # drop any extra empty values we got because they make the total number go off
+	model_run.n_wells = int(results_values[1])
+	results_values = results_values[2:-1]  # first value is status message, second value is number of wells, last is "EndOfMsg"
+
+	# we need to have a number of results divisible by the number of wells and the number of years, so do some checks
+	if len(results_values) % model_run.n_years != 0 or (len(results_values) / model_run.n_wells) != model_run.n_years:
+		error_message = "Got an incorrect number of results from model run. Cannot reliably process to percentiles. You may try again"
+		model_run.status = ModelRun.ERROR
+		model_run.status_message = error_message
+		log.error(error_message)  # log it as an error too so it goes to all the appropriate handlers
+		return
+
+	# OK, now we should be safe to proceed
+	# we're going to make a 2 dimensional numpy array where every row is a well and every column is a year
+	# start by making it a numpy array and convert to float by default
+	results_array = numpy.array(results_values, dtype=numpy.float)
+	results_2d = results_array.reshape(model_run.n_wells, model_run.n_years)
+
+	# get the percentiles - when a percentile would be between 2 values, get the nearest actual value in the dataset
+	# instead of interpolating between them, mostly because numpy throws errors when we try that.
+	# skip all nan in the mantis output
+	percentiles = numpy.nanpercentile(results_2d, q=settings.PERCENTILE_CALCULATIONS, interpolation="nearest", axis=0)
+	for index, percentile in enumerate(settings.PERCENTILE_CALCULATIONS):
+		current_percentiles = json.dumps(percentiles[index].tolist())  # coerce from numpy to list, then dump as JSON to a string
+		ResultPercentile(model=model_run, percentile=percentile, values=current_percentiles).save()
+
+	model_run.save()
+

@@ -21,7 +21,7 @@ def load_crops():
 	:return:
 	"""
 
-	crops = [("All Crops", 0), ("Corn", 606), ("Grapes", 2200)]
+	crops = [("All Other Crops", 0), ("Corn", 606), ("Grapes", 2200)]
 
 	for crop in crops:
 		models.Crop(name=crop[0], caml_code=crop[1]).save()
@@ -131,3 +131,9 @@ def enable_region_dev_data(enable_regions=("Central Valley", ), all=False):
 			update_region = models.Region.objects.get(name=county)
 			update_region.active_in_mantis = True
 			update_region.save()
+
+
+def enable_scenario_dev_data():
+	models.Scenario(name='CVHM_70_03', active_in_mantis=True).save()
+	models.Scenario(name='C2VSIM_99_09', active_in_mantis=True).save()
+
