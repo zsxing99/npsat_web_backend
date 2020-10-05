@@ -9,6 +9,10 @@ from npsat_manager import models
 
 def load_all():
 	load_crops()
+	load_regions()
+
+
+def load_regions():
 	load_counties()
 	load_farms()
 	load_central_valley()
@@ -33,7 +37,7 @@ def load_counties():
 	"""
 
 	county_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "california-counties-1.0.0", "geojson", "california_counties_simplified_0005.geojson")
-	load_regions(county_file, (("name", "name"), ("abcode", "external_id")), region_type="County")  #, ("ansi", "ansi_code")))
+	load_spec_regions(county_file, (("name", "name"), ("abcode", "external_id")), region_type="County")  #, ("ansi", "ansi_code")))
 
 	enable_default_counties(all=True)  # all is True just for testing - we'll set this to False later
 
@@ -48,15 +52,20 @@ def load_farms():
 		('ShortName', 'name'),
 	)
 	farm_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "CVHM-farm", "geojson", "CVHM_farms_cleaned.geojson")
-	load_regions(farm_file, field_map, region_type="CVHMFarm")
+	load_spec_regions(farm_file, field_map, region_type="CVHMFarm")
 
 
 def load_central_valley():
 	central_valley_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "central_valley.geojson")
-	load_regions(central_valley_file, (("name", "name"), ("Id", "external_id")), region_type="Central Valley")
+	load_spec_regions(central_valley_file, (("name", "name"), ("Id", "external_id")), region_type="Central Valley")
 
 
-def load_regions(json_file, field_map, region_type):
+def load_basins():
+	basin_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "Basin", "geojson", "basin.geojson")
+	load_spec_regions(basin_file, (("CVHM_Basin", "name"), ("Basin_ID", "external_id")), region_type="Basin")
+
+
+def load_spec_regions(json_file, field_map, region_type):
 	"""
 		Given a geojson file, loads each record as a county instance, assigning data
 		to fields by the field map. The geojson file isn't a standard file, but instead just
