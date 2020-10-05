@@ -16,6 +16,8 @@ def load_regions():
 	load_counties()
 	load_farms()
 	load_central_valley()
+	load_basins()
+	load_townships()
 
 
 def load_crops():
@@ -63,6 +65,11 @@ def load_central_valley():
 def load_basins():
 	basin_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "Basin", "geojson", "basin.geojson")
 	load_spec_regions(basin_file, (("CVHM_Basin", "name"), ("Basin_ID", "external_id")), region_type="Basin")
+
+
+def load_townships():
+	basin_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "townships", "geojson", "townships.geojson")
+	load_spec_regions(basin_file, (("TOWNSHIP", "name"), ("TOWNSHIP", "external_id")), region_type="Townships")
 
 
 def load_spec_regions(json_file, field_map, region_type):
