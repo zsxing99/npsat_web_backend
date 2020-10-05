@@ -81,6 +81,7 @@ class ModificationSerializer(serializers.ModelSerializer):
 
 
 class NestedModificationSerializer(serializers.ModelSerializer):
+	crop = CropSerializer(read_only=True)
 
 	class Meta:
 		model = models.Modification
