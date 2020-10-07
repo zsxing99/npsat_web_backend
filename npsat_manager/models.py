@@ -310,7 +310,7 @@ class MantisServer(models.Model):
 		# add all remaining crops
 		for crop in Crop.objects.all():
 			if crop.caml_code not in selected_crops:
-				crops_input += " {} {}".format(crop.caml_code, all_crops_param)
+				crops_input += " {} {}".format(crop.caml_code, 1 - all_crops_param)
 
 		command_string += ' {}'.format(num_crops)
 		command_string += crops_input
