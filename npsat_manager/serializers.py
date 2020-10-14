@@ -11,6 +11,24 @@ class CropSerializer(serializers.ModelSerializer):
 		fields = ('id', 'name', 'caml_code')
 
 
+class NestedCropSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = models.Crop
+		fields = ('id', 'name', 'caml_code')
+		extra_kwargs = {
+			"id": {
+				"read_only": False,
+				"required": False,
+			},
+			"name": {
+				"required": False,
+			},
+			"caml_code": {
+				"required": False
+			}
+		}
+
+
 class RegionSerializer(serializers.ModelSerializer):
 	geometry = serializers.JSONField(read_only=True, binary=False)
 	class Meta:
@@ -81,7 +99,7 @@ class ModificationSerializer(serializers.ModelSerializer):
 
 
 class NestedModificationSerializer(serializers.ModelSerializer):
-	crop = CropSerializer(read_only=True)
+	crop = NestedCropSerializer(read_only=False)
 
 	class Meta:
 		model = models.Modification
@@ -126,7 +144,9 @@ class RunResultSerializer(serializers.ModelSerializer):
 
 		model_run = models.ModelRun.objects.create(**validated_data, scenario=models.Scenario.objects.get(id=scenario['id']))
 		for modification in modifications_data:
-			models.Modification.objects.create(model_run=model_run, **modification)
+			proportion = modification["proportion"]
+			crop_id = modification["crop"]["id"]
+			models.Modification.objects.create(model_run=model_run, proportion=proportion, crop_id=crop_id)
 
 		for region in regions_data:
 			model_run.regions.add(models.Region.objects.get(id=region['id']))
