@@ -53,6 +53,9 @@ urlpatterns = [
     url(r'^api-token-auth/', views.CustomAuthToken.as_view()),  # POST a username and password here, get a token back
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 
+    # dashboard fee
+    url(r'^api/feed/', views.FeedOnDashboard.as_view()),
+
     # DRF docs from drf-yasg
     url(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     url(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
