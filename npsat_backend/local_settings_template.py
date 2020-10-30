@@ -18,7 +18,7 @@ SERVE_ADDRESS = "*:8010"  # what address and port should we serve the site on
 ALLOWED_HOSTS = []
 
 # EMAIL SENDING SETTINGS
-EMAIL_HOST = ''  # email server
+EMAIL_HOST = 'smtp.gmail.com'  # email server
 EMAIL_PORT = 587
 EMAIL_HOST_USER = ''  # email server username
 EMAIL_HOST_PASSWORD = ''  # email server password
