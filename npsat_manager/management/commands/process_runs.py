@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from npsat_manager import mantis_manager, models
 
-log = logging.getLogger("npsat_manager.commands.process_runs")
+log = logging.getLogger("npsat.commands.process_runs")
 
 
 class Command(BaseCommand):

@@ -189,5 +189,9 @@ LOGGING = {
             'handlers': ['console', 'file_debug'] + EMAIL_HANDLERS,
             'level': 'DEBUG'
         },
+        'npsat_manager': {
+            'handlers': ['console', 'file_debug'] + EMAIL_HANDLERS,
+            'level': 'DEBUG'
+        },
     },
 }
