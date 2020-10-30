@@ -11,6 +11,8 @@ LOGGING_FOLDER = os.path.join(BASE_DIR, '..', 'logs')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+ADMINS = []
+
 SERVE_ADDRESS = "*:8010"  # what address and port should we serve the site on
 ALLOWED_HOSTS = []
 
