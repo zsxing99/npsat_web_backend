@@ -1,5 +1,7 @@
 import os
 
+from .databases import DATABASES
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'MAKE_ME_A_SAFE_CRYPTOGRAPHICALLY_SECURE_SEED_VALUE'
 
