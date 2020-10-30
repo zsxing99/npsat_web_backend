@@ -121,6 +121,24 @@ class NestedResultPercentileSerializer(serializers.ModelSerializer):
 		fields = ('id', 'percentile')
 
 
+class CompletedRunResultWithValuesSerializer(serializers.ModelSerializer):
+	def __init__(self, **kwargs):
+		self.percentiles = kwargs.pop("percentiles")
+		super().__init__(**kwargs)
+
+	results = serializers.SerializerMethodField("get_results")
+
+	def get_results(self, model_run):
+		query_set = models.ResultPercentile.objects.filter(model=model_run, percentile__in=self.percentiles)
+		return ResultPercentileSerializer(instance=query_set, many=True).data
+
+	class Meta:
+		model = models.ModelRun
+		fields = ('id', 'user', 'name', 'description', 'unsaturated_zone_travel_time',
+				  'date_submitted', 'date_completed', 'status', 'status_message', 'n_years', 'water_content',
+				  'reduction_year',  'results', 'n_wells', 'public', 'is_base')
+
+
 class RunResultSerializer(serializers.ModelSerializer):
 	modifications = NestedModificationSerializer(many=True, allow_null=True, partial=True)
 	regions = NestedRegionSerializer(many=True, allow_null=True, partial=True, read_only=False)

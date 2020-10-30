@@ -62,24 +62,37 @@ class FeedOnDashboard(APIView):
 		"""
 		return the above mentioned information
 		"""
-		recent_completed_models = models.ModelRun.objects.filter(
+		completed_models = models.ModelRun.objects.filter(
 			user=self.request.user,
 			status=models.ModelRun.COMPLETED,
-		).order_by('-date_completed')[:10]
+		).order_by('-date_completed')
 		recent_published_models = models.ModelRun.objects.exclude(
 			user=self.request.user
 		).filter(
 			public=True
 		).order_by('-date_completed')[:10]
 		total_created_number = models.ModelRun.objects.filter(user=self.request.user).count()
-		total_publish_number = models.ModelRun.objects.filter(public=True).count()
+		total_completed_number = completed_models.count()
+		total_published_number = models.ModelRun.objects.filter(public=True, user=self.request.user).count()
+		total_public_number = models.ModelRun.objects.filter(public=True).count()
+
+		# plot data
+		plot_models_data = models.ModelRun.objects\
+			.filter(Q(user=self.request.user) | Q(public=True))\
+			.filter(status=models.ModelRun.COMPLETED)\
+			.order_by("-date_submitted")
 
 		# updates information
 		return Response({
-			'recent_completed_models': serializers.RunResultSerializer(recent_completed_models, many=True).data,
+			'recent_completed_models': serializers.RunResultSerializer(completed_models[:10], many=True).data,
 			'recent_published_models': serializers.RunResultSerializer(recent_published_models, many=True).data,
 			'total_created_number': total_created_number,
-			'total_publish_number': total_publish_number
+			'total_public_number': total_public_number,
+			'total_completed_number': total_completed_number,
+			'total_published_number': total_published_number,
+			'plot_models_data': serializers.CompletedRunResultWithValuesSerializer(
+				instance=plot_models_data[:20], many=True, percentiles=[50]
+			).data
 		})
 
 
