@@ -6,10 +6,11 @@ from .databases import DATABASES
 SECRET_KEY = 'MAKE_ME_A_SAFE_CRYPTOGRAPHICALLY_SECURE_SEED_VALUE'
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOGGING_FOLDER = os.path.join(BASE_DIR, '..', 'logs')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
+
+LOGGING_FOLDER = os.path.join(BASE_DIR) if DEBUG else os.path.join(BASE_DIR, "..", "logs")
 
 ADMINS = []
 

@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     'npsat_manager',
     'rest_framework',
     'rest_framework.authtoken',
-    'drf_yasg',  # django rest framework schema generator
+    #'drf_yasg',  # django rest framework schema generator
 ]
 
 if DEBUG:
@@ -139,7 +139,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # The following code block sets it up to not email when DEBUG is on, assuming we'll see it. If DEBUG is off, then it will email too.
 EMAIL_WHEN_DEBUG_ON = False
-if (EMAIL_WHEN_DEBUG_ON and DEBUG) or not DEBUG:
+if EMAIL_WHEN_DEBUG_ON or not DEBUG:
     EMAIL_DEBUG_HANDLER = {
         'email_warn': {
             'level': "WARNING",
