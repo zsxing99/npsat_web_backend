@@ -25,11 +25,6 @@ EMAIL_HOST_PASSWORD = ''  # email server password
 EMAIL_USE_TLS = True
 SERVER_EMAIL = ''  # what address does the email come from?
 
-# EMAILS TO SEND TO
-WARN_EMAILS = []  # Add ('Name', 'email') tuples here and next line for warnings and errors
-ERROR_EMAILS = []
-ADMINS = ERROR_EMAILS
-
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
