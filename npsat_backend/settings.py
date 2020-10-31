@@ -134,7 +134,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/dgstatic/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # The following code block sets it up to not email when DEBUG is on, assuming we'll see it. If DEBUG is off, then it will email too.
