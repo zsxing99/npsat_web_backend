@@ -194,3 +194,4 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+npsat_backend/databases.py
