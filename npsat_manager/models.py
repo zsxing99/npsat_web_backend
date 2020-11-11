@@ -78,14 +78,31 @@ class Region(models.Model):
 	"""
 
 	# macros for region_type
-
+	CENTRAL_VALLEY = 0
+	SUB_BASIN = 1
+	CVHM_FARM = 2
+	B118_BASIN = 3
+	COUNTY = 4
+	TOWNSHIPS = 5
+	C2V_SIM_SUBREGIONS = 6
+	REGION_TYPE = [
+		(CENTRAL_VALLEY, "Central Valley"),
+		(SUB_BASIN, "Basin"),  # to main system integrity: "sub basin" <=> "basin"
+		(CVHM_FARM, "CVHMFarm"),
+		(B118_BASIN, "b118 basins"),
+		(COUNTY, "County"),
+		(TOWNSHIPS, "Townships"),
+		(C2V_SIM_SUBREGIONS, "C2VsimSubregions")
+	]
 
 	mantis_id = models.IntegerField(null=True)
 	name = models.CharField(max_length=255)
 	active_in_mantis = models.BooleanField(default=False)  # Is this region actually ready to be selected?
+	camel_id = models.IntegerField(null=True)  # crop id used for GNLM models
+	swat_id = models.IntegerField(null=True)  # crop id used for SWAT models
 	geometry = SimpleJSONField(null=True, blank=True)  #
 	external_id = models.CharField(null=True, max_length=255, blank=True)
-	region_type = models.CharField(max_length=25)  # is it a county, a B118 Basin, etc? we'll need to have some kind of code for this
+	region_type = models.CharField(max_length=25, choices=REGION_TYPE)  # is it a county, a B118 Basin, etc? we'll need to have some kind of code for this
 
 	def __str__(self):
 		return self.name
