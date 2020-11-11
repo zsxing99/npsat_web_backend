@@ -133,6 +133,7 @@ class Scenario(models.Model):
 
     name = models.CharField(max_length=255, null=False, blank=False)
     active_in_mantis = models.BooleanField(default=False)
+    description = models.TextField(null=True, blank=True)
     scenario_type = models.CharField(max_length=25, choices=SCENARIO_TYPE)
     crop_code_field = models.CharField(max_length=10, choices=CROP_CODE_TYPE, blank=True, null=True)
 
