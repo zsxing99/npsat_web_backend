@@ -228,10 +228,12 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 
 		if sorter:
 			sorter_field, order = sorter.split(',')
-			if order == 'ascend':
-				return results.order_by(sorter_field)
-			else:
-				return results.order_by('-' + sorter_field)
+			# check if any malicious injection
+			if hasattr(models.ModelRun, sorter_field):
+				if order == 'ascend':
+					return results.order_by(sorter_field)
+				else:
+					return results.order_by('-' + sorter_field)
 
 		return results.order_by('id')
 
