@@ -11,6 +11,7 @@ from npsat_manager import serializers
 from npsat_manager import models
 from npsat_manager.support import tokens  # token code makes sure that all users have tokens - needs to be imported somewhere
 
+from rest_framework.views import APIView
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
@@ -44,6 +45,57 @@ class ReadOnly(BasePermission):
 
 
 # Create your views here.
+class FeedOnDashboard(APIView):
+	"""
+	the API endpoint for dashboard
+
+	It will return information for the dashboard
+	1. recent 10 completed model by the authenticated user
+	2. recent 10 published model not created by the authenticated user
+	3. meta info: total number of models created, etc...
+	4. updates/notifications
+	"""
+	permission_classes = [IsAuthenticated]
+	http_method_names = ["get"]
+
+	def get(self, request):
+		"""
+		return the above mentioned information
+		"""
+		completed_models = models.ModelRun.objects.filter(
+			user=self.request.user,
+			status=models.ModelRun.COMPLETED,
+		).order_by('-date_completed')
+		recent_published_models = models.ModelRun.objects.exclude(
+			user=self.request.user
+		).filter(
+			public=True
+		).order_by('-date_completed')[:10]
+		total_created_number = models.ModelRun.objects.filter(user=self.request.user).count()
+		total_completed_number = completed_models.count()
+		total_published_number = models.ModelRun.objects.filter(public=True, user=self.request.user).count()
+		total_public_number = models.ModelRun.objects.filter(public=True).count()
+
+		# plot data
+		plot_models_data = models.ModelRun.objects\
+			.filter(Q(user=self.request.user) | Q(public=True))\
+			.filter(status=models.ModelRun.COMPLETED)\
+			.order_by("-date_submitted")
+
+		# updates information
+		return Response({
+			'recent_completed_models': serializers.RunResultSerializer(completed_models[:10], many=True).data,
+			'recent_published_models': serializers.RunResultSerializer(recent_published_models, many=True).data,
+			'total_created_number': total_created_number,
+			'total_public_number': total_public_number,
+			'total_completed_number': total_completed_number,
+			'total_published_number': total_published_number,
+			'plot_models_data': serializers.CompletedRunResultWithValuesSerializer(
+				instance=plot_models_data[:20], many=True, percentiles=[50]
+			).data
+		})
+
+
 class ScenarioViewSet(viewsets.ModelViewSet):
 	"""
 	scenario name
@@ -176,10 +228,12 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 
 		if sorter:
 			sorter_field, order = sorter.split(',')
-			if order == 'ascend':
-				return results.order_by(sorter_field)
-			else:
-				return results.order_by('-' + sorter_field)
+			# check if any malicious injection
+			if hasattr(models.ModelRun, sorter_field):
+				if order == 'ascend':
+					return results.order_by(sorter_field)
+				else:
+					return results.order_by('-' + sorter_field)
 
 		return results.order_by('id')
 

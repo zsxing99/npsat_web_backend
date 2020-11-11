@@ -19,8 +19,7 @@ LOAD_SLEEP = 1
 
 @sync_to_async
 def _get_runs_for_queue():
-	new_runs = models.ModelRun.objects.filter(ready=True, running=False,
-	                                          complete=False).prefetch_related('modifications')  # get runs that aren't complete
+	new_runs = models.ModelRun.objects.filter(status=models.ModelRun.READY).prefetch_related('modifications')  # get runs that aren't complete
 	runs = list(new_runs)
 	for run in runs:
 		run.running = True
@@ -88,9 +87,9 @@ def test(server, model_run):
 def initialize():
 	# we're assuming we're starting now, so set ModelRuns to not running if they're not complete
 	# this helps if the server shut down while running an analysis and makes sure it gets run when it starts up next.
-	all_incomplete_runs = models.ModelRun.objects.filter(complete=False)
+	all_incomplete_runs = models.ModelRun.objects.filter(status=models.ModelRun.RUNNING)
 	for run in all_incomplete_runs:
-		run.running = False
+		run.status = models.ModelRun.READY
 		run.save()
 
 	# Now figure out which servers are online - go through the MantisServer object's startup sequence

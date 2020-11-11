@@ -11,6 +11,24 @@ class CropSerializer(serializers.ModelSerializer):
 		fields = ('id', 'name', 'caml_code')
 
 
+class NestedCropSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = models.Crop
+		fields = ('id', 'name', 'caml_code')
+		extra_kwargs = {
+			"id": {
+				"read_only": False,
+				"required": False,
+			},
+			"name": {
+				"required": False,
+			},
+			"caml_code": {
+				"required": False
+			}
+		}
+
+
 class RegionSerializer(serializers.ModelSerializer):
 	geometry = serializers.JSONField(read_only=True, binary=False)
 	class Meta:
@@ -81,6 +99,7 @@ class ModificationSerializer(serializers.ModelSerializer):
 
 
 class NestedModificationSerializer(serializers.ModelSerializer):
+	crop = NestedCropSerializer(read_only=False)
 
 	class Meta:
 		model = models.Modification
@@ -102,6 +121,24 @@ class NestedResultPercentileSerializer(serializers.ModelSerializer):
 		fields = ('id', 'percentile')
 
 
+class CompletedRunResultWithValuesSerializer(serializers.ModelSerializer):
+	def __init__(self, **kwargs):
+		self.percentiles = kwargs.pop("percentiles")
+		super().__init__(**kwargs)
+
+	results = serializers.SerializerMethodField("get_results")
+
+	def get_results(self, model_run):
+		query_set = models.ResultPercentile.objects.filter(model=model_run, percentile__in=self.percentiles)
+		return ResultPercentileSerializer(instance=query_set, many=True).data
+
+	class Meta:
+		model = models.ModelRun
+		fields = ('id', 'user', 'name', 'description', 'unsaturated_zone_travel_time',
+				  'date_submitted', 'date_completed', 'status', 'status_message', 'n_years', 'water_content',
+				  'reduction_start_year', 'reduction_end_year', 'results', 'n_wells', 'public', 'is_base')
+
+
 class RunResultSerializer(serializers.ModelSerializer):
 	modifications = NestedModificationSerializer(many=True, allow_null=True, partial=True)
 	regions = NestedRegionSerializer(many=True, allow_null=True, partial=True, read_only=False)
@@ -112,7 +149,7 @@ class RunResultSerializer(serializers.ModelSerializer):
 		model = models.ModelRun
 		fields = ('id', 'user', 'name', 'description', 'regions', 'modifications', 'unsaturated_zone_travel_time',
 		          'date_submitted', 'date_completed', 'status', 'status_message', 'n_years', 'water_content',
-				  'reduction_year', 'scenario', 'results', 'n_wells', 'public', 'is_base')
+				  'reduction_start_year', 'reduction_end_year', 'scenario', 'results', 'n_wells', 'public', 'is_base')
 		depth = 0  # should mean that modifications get included in the initial request
 
 	def validate(self, data):
@@ -125,7 +162,9 @@ class RunResultSerializer(serializers.ModelSerializer):
 
 		model_run = models.ModelRun.objects.create(**validated_data, scenario=models.Scenario.objects.get(id=scenario['id']))
 		for modification in modifications_data:
-			models.Modification.objects.create(model_run=model_run, **modification)
+			proportion = modification["proportion"]
+			crop_id = modification["crop"]["id"]
+			models.Modification.objects.create(model_run=model_run, proportion=proportion, crop_id=crop_id)
 
 		for region in regions_data:
 			model_run.regions.add(models.Region.objects.get(id=region['id']))
