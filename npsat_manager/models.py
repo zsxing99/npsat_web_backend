@@ -67,7 +67,7 @@ class Crop(models.Model):
     dwr_code = models.PositiveSmallIntegerField(null=True)
     crop_type = models.PositiveSmallIntegerField(choices=CROP_TYPES)
     # groups reverse relationship
-    similar_crops = models.ManyToManyField("Crop", null=True, related_name="")
+    similar_crops = models.ManyToManyField("Crop", blank=True, related_name="similar_backward")
     active_in_mantis = models.BooleanField(default=True)
 
     def __str__(self):
