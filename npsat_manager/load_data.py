@@ -150,6 +150,19 @@ def enable_region_dev_data(enable_regions=("Central Valley", ), all=False):
 
 
 def enable_scenario_dev_data():
-	models.Scenario(name='CVHM_70_03', active_in_mantis=True).save()
-	models.Scenario(name='C2VSIM_99_09', active_in_mantis=True).save()
+	models.Scenario(name='CVHM_92_03_BUD0', active_in_mantis=True, scenario_type=models.Scenario.TYPE_FLOW).save()
+	models.Scenario(name='CVHM_92_03_BUD1', active_in_mantis=True, scenario_type=models.Scenario.TYPE_FLOW).save()
+
+	models.Scenario(name='GNLM', active_in_mantis=True, scenario_type=models.Scenario.TYPE_LOAD,
+					crop_code_field=models.Scenario.GNLM_CROP).save()
+	models.Scenario(name='SWAT1', active_in_mantis=True, scenario_type=models.Scenario.TYPE_LOAD,
+					crop_code_field=models.Scenario.SWAT_CROP).save()
+	models.Scenario(name='SWAT2', active_in_mantis=True, scenario_type=models.Scenario.TYPE_LOAD,
+					crop_code_field=models.Scenario.SWAT_CROP).save()
+	models.Scenario(name='SWAT3', active_in_mantis=True, scenario_type=models.Scenario.TYPE_LOAD,
+					crop_code_field=models.Scenario.SWAT_CROP).save()
+	models.Scenario(name='SWAT4', active_in_mantis=True, scenario_type=models.Scenario.TYPE_LOAD,
+					crop_code_field=models.Scenario.SWAT_CROP).save()
+
+	models.Scenario(name='C2VSIM_SPRING_2015', active_in_mantis=True, scenario_type=models.Scenario.TYPE_UNSAT)
 
