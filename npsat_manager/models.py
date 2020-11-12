@@ -52,9 +52,23 @@ class SimpleJSONField(models.TextField):
 
 
 class Crop(models.Model):
+    # crop types
+    SWAT_CROP = 'SWAT'
+    GNLM_CROP = 'GNLM'
+    GENERAL_CROP = 'BOTH'
+    CROP_TYPES = [
+        (SWAT_CROP, 0),
+        (GNLM_CROP, 1),
+        (GENERAL_CROP, 2)
+    ]
+
     name = models.CharField(max_length=255)
-    caml_code = models.PositiveSmallIntegerField(blank=True, null=True)
-    dwr_code = models.PositiveSmallIntegerField(blank=True, null=True)
+    caml_code = models.PositiveSmallIntegerField(null=True)
+    dwr_code = models.PositiveSmallIntegerField(null=True)
+    crop_type = models.PositiveSmallIntegerField(choices=CROP_TYPES)
+    # groups reverse relationship
+    similar_crops = models.ManyToManyField("Crop", null=True, related_name="")
+    active_in_mantis = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -99,7 +113,7 @@ class Region(models.Model):
 
     mantis_id = models.IntegerField(null=True)
     name = models.CharField(max_length=255)
-    active_in_mantis = models.BooleanField(default=False)  # Is this region actually ready to be selected?
+    active_in_mantis = models.BooleanField(default=True)  # Is this region actually ready to be selected?
     geometry = SimpleJSONField(null=True, blank=True)  #
     external_id = models.CharField(null=True, max_length=255, blank=True)
     region_type = models.CharField(max_length=25,
@@ -132,7 +146,7 @@ class Scenario(models.Model):
     ]
 
     name = models.CharField(max_length=255, null=False, blank=False)
-    active_in_mantis = models.BooleanField(default=False)
+    active_in_mantis = models.BooleanField(default=True)
     description = models.TextField(null=True, blank=True)
     scenario_type = models.CharField(max_length=25, choices=SCENARIO_TYPE)
     crop_code_field = models.CharField(max_length=10, choices=CROP_CODE_TYPE, blank=True, null=True)
