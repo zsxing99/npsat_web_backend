@@ -8,7 +8,7 @@ from npsat_manager import models
 class CropSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = models.Crop
-		fields = ('id', 'name', 'caml_code')
+		fields = ('id', 'name', 'caml_code', 'crop_type', 'dwr_code')
 
 
 class NestedCropSerializer(serializers.ModelSerializer):
