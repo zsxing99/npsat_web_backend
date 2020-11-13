@@ -107,7 +107,7 @@ class ScenarioViewSet(viewsets.ModelViewSet):
 
 	def get_queryset(self):
 		queryset = models.Scenario.objects.filter(active_in_mantis=True).order_by('name')
-		scenario_type = self.request.query_params.get('scenario_type', None)
+		scenario_type = self.request.query_params.get('scenario_type', False)
 		if scenario_type:
 			queryset = queryset.filter(scenario_type=scenario_type)
 		return queryset
@@ -125,7 +125,7 @@ class CropViewSet(viewsets.ModelViewSet):
 
 	def get_queryset(self):
 		queryset = models.Crop.objects.filter(active_in_mantis=True).order_by('name')
-		scenario_id = self.request.query_params.get('flow_scenario', None)
+		scenario_id = self.request.query_params.get('flow_scenario', False)
 		if scenario_id:
 			scenario = models.Scenario.objects.get(id=scenario_id)
 			crop_type = scenario.CROP_CODE_TYPE
@@ -152,7 +152,7 @@ class RegionViewSet(viewsets.ModelViewSet):
 
 	def get_queryset(self):
 		queryset = models.Region.objects.filter(active_in_mantis=True).order_by('name')
-		region_type = self.request.query_params.get('region_type', None)
+		region_type = self.request.query_params.get('region_type', False)
 		if region_type:
 			queryset = queryset.filter(region_type=region_type)
 		return queryset
@@ -245,7 +245,12 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 			results = results.filter(query)
 
 		if scenarios:
-			results = results.filter(scenario__in=scenarios.split(','))
+			scenarios_list = scenarios.split(',')
+			results = results.filter(
+				Q(flow_scenario__in=scenarios_list) |
+				Q(unsat_scenario__in=scenarios_list) |
+				Q(load_scenario__in=scenarios_list)
+			)
 
 		if sorter:
 			sorter_field, order = sorter.split(',')
@@ -270,7 +275,13 @@ class ModificationViewSet(viewsets.ModelViewSet):
 	serializer_class = serializers.ModificationSerializer
 
 	def get_queryset(self):
-		return models.Modification.objects.filter(model_run__user=self.request.user).order_by('id')
+		return models.Modification.objects\
+			.filter(
+				Q(model__user=self.request.user) |
+				Q(model__public=True) |
+				Q(model__is_base=True)
+			)\
+			.order_by('id')
 
 
 class ResultPercentileViewSet(viewsets.ModelViewSet):
