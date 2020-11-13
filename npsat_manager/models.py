@@ -53,13 +53,15 @@ class SimpleJSONField(models.TextField):
 
 class Crop(models.Model):
     # crop types
-    SWAT_CROP = 'SWAT'
-    GNLM_CROP = 'GNLM'
-    GENERAL_CROP = 'BOTH'
+    SWAT_CROP = 0
+    GNLM_CROP = 1
+    GENERAL_CROP = 2
+    ALL_OTHER_CROP = 3
     CROP_TYPES = [
-        (SWAT_CROP, 0),
-        (GNLM_CROP, 1),
-        (GENERAL_CROP, 2)
+        (SWAT_CROP, 'SWAT'),
+        (GNLM_CROP, 'GNLM'),
+        (GENERAL_CROP, 'BOTH'),
+        (ALL_OTHER_CROP, 'Special identifier of all other crops')
     ]
 
     name = models.CharField(max_length=255)
@@ -103,7 +105,7 @@ class Region(models.Model):
     C2V_SIM_SUBREGIONS = 6
     REGION_TYPE = [
         (CENTRAL_VALLEY, "Central Valley"),
-        (SUB_BASIN, "Basin"),  # to main system integrity: "sub basin" <=> "basin"
+        (SUB_BASIN, "Basin"),  # to maintain system integrity: "sub basin" <=> "basin"
         (CVHM_FARM, "CVHMFarm"),
         (B118_BASIN, "b118 basins"),
         (COUNTY, "County"),
@@ -116,8 +118,7 @@ class Region(models.Model):
     active_in_mantis = models.BooleanField(default=True)  # Is this region actually ready to be selected?
     geometry = SimpleJSONField(null=True, blank=True)  #
     external_id = models.CharField(null=True, max_length=255, blank=True)
-    region_type = models.CharField(max_length=25,
-                                   choices=REGION_TYPE)  # is it a county, a B118 Basin, etc? we'll need to have some kind of code for this
+    region_type = models.PositiveSmallIntegerField(choices=REGION_TYPE)  # is it a county, a B118 Basin, etc? we'll need to have some kind of code for this
 
     def __str__(self):
         return self.name
@@ -148,7 +149,7 @@ class Scenario(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False)
     active_in_mantis = models.BooleanField(default=True)
     description = models.TextField(null=True, blank=True)
-    scenario_type = models.CharField(max_length=25, choices=SCENARIO_TYPE)
+    scenario_type = models.PositiveSmallIntegerField(choices=SCENARIO_TYPE)
     crop_code_field = models.CharField(max_length=10, choices=CROP_CODE_TYPE, blank=True, null=True)
 
 
@@ -197,11 +198,11 @@ class ModelRun(models.Model):
     COMPLETED = 3
     ERROR = 4
     STATUS_CHOICE = [
-        (NOT_READY, 0),
-        (READY, 1),
-        (RUNNING, 2),
-        (COMPLETED, 3),
-        (ERROR, 4),
+        (NOT_READY, 'not ready'),
+        (READY, 'ready'),
+        (RUNNING, 'running'),
+        (COMPLETED, 'completed'),
+        (ERROR, 'error'),
     ]
     status = models.IntegerField(default=NOT_READY, choices=STATUS_CHOICE, null=False)
 

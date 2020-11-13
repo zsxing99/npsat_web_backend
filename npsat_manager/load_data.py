@@ -30,7 +30,7 @@ def load_crops():
 	crops = [("All Other Crops", 0), ("Corn", 606), ("Grapes", 2200)]
 
 	for crop in crops:
-		models.Crop(name=crop[0], caml_code=crop[1]).save()
+		models.Crop(name=crop[0], caml_code=crop[1], crop_type=models.Crop.GNLM_CROP, active_in_mantis=True).save()
 
 
 def load_counties():
@@ -39,7 +39,7 @@ def load_counties():
 	"""
 
 	county_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "california-counties-1.0.0", "geojson", "california_counties_simplified_0005.geojson")
-	load_spec_regions(county_file, (("name", "name"), ("abcode", "external_id")), region_type="County")  #, ("ansi", "ansi_code")))
+	load_spec_regions(county_file, (("name", "name"), ("abcode", "external_id")), region_type=models.Region.COUNTY)  #, ("ansi", "ansi_code")))
 
 	enable_default_counties(all=True)  # all is True just for testing - we'll set this to False later
 
@@ -54,22 +54,22 @@ def load_farms():
 		('ShortName', 'name'),
 	)
 	farm_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "CVHM-farm", "geojson", "CVHM_farms_cleaned.geojson")
-	load_spec_regions(farm_file, field_map, region_type="CVHMFarm")
+	load_spec_regions(farm_file, field_map, region_type=models.Region.CVHM_FARM)
 
 
 def load_central_valley():
 	central_valley_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "central_valley.geojson")
-	load_spec_regions(central_valley_file, (("name", "name"), ("Id", "external_id")), region_type="Central Valley")
+	load_spec_regions(central_valley_file, (("name", "name"), ("Id", "external_id")), region_type=models.Region.CENTRAL_VALLEY)
 
 
 def load_basins():
 	basin_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "Basin", "geojson", "basin.geojson")
-	load_spec_regions(basin_file, (("CVHM_Basin", "name"), ("Basin_ID", "external_id")), region_type="Basin")
+	load_spec_regions(basin_file, (("CVHM_Basin", "name"), ("Basin_ID", "external_id")), region_type=models.Region.SUB_BASIN)
 
 
 def load_townships():
 	basin_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "townships", "geojson", "townships.geojson")
-	load_spec_regions(basin_file, (("TOWNSHIP", "name"), ("TOWNSHIP", "external_id")), region_type="Townships")
+	load_spec_regions(basin_file, (("TOWNSHIP", "name"), ("TOWNSHIP", "external_id")), region_type=models.Region.TOWNSHIPS)
 
 
 def load_spec_regions(json_file, field_map, region_type):
@@ -150,19 +150,29 @@ def enable_region_dev_data(enable_regions=("Central Valley", ), all=False):
 
 
 def enable_scenario_dev_data():
-	models.Scenario(name='CVHM_92_03_BUD0', active_in_mantis=True, scenario_type=models.Scenario.TYPE_FLOW).save()
-	models.Scenario(name='CVHM_92_03_BUD1', active_in_mantis=True, scenario_type=models.Scenario.TYPE_FLOW).save()
+	models.Scenario(name='CVHM_92_03_BUD0', active_in_mantis=True, scenario_type=models.Scenario.TYPE_FLOW,
+					description="Simulation based on CVHM average flow conditions for the period 10/1992"
+								" - 9/2003 where the pumping is reduced to match the recharge.").save()
+	models.Scenario(name='CVHM_92_03_BUD1', active_in_mantis=True, scenario_type=models.Scenario.TYPE_FLOW,
+					description="Simulation based on CVHM average flow conditions for the period 10/1992"
+								" - 9/2003 where the recharge is increased to match the pumping.").save()
 
 	models.Scenario(name='GNLM', active_in_mantis=True, scenario_type=models.Scenario.TYPE_LOAD,
-					crop_code_field=models.Scenario.GNLM_CROP).save()
+					crop_code_field=models.Scenario.GNLM_CROP,
+					description="The N loading is based on GNLM historic and future predictions. It covers a period "
+								"between 1945 - 2050 with 15 years increments.").save()
 	models.Scenario(name='SWAT1', active_in_mantis=True, scenario_type=models.Scenario.TYPE_LOAD,
-					crop_code_field=models.Scenario.SWAT_CROP).save()
+					crop_code_field=models.Scenario.SWAT_CROP,
+					description="Concentrations history (1990 - 2015) based on Baseline.").save()
 	models.Scenario(name='SWAT2', active_in_mantis=True, scenario_type=models.Scenario.TYPE_LOAD,
-					crop_code_field=models.Scenario.SWAT_CROP).save()
+					crop_code_field=models.Scenario.SWAT_CROP,
+					description="Concentrations history (1990 - 2015) based on High Fertilization.").save()
 	models.Scenario(name='SWAT3', active_in_mantis=True, scenario_type=models.Scenario.TYPE_LOAD,
-					crop_code_field=models.Scenario.SWAT_CROP).save()
+					crop_code_field=models.Scenario.SWAT_CROP,
+					description="Concentrations history (1990 - 2015) based on High Irrigation.").save()
 	models.Scenario(name='SWAT4', active_in_mantis=True, scenario_type=models.Scenario.TYPE_LOAD,
-					crop_code_field=models.Scenario.SWAT_CROP).save()
+					crop_code_field=models.Scenario.SWAT_CROP,
+					description="Concentrations history (1990 - 2015) based on High Fertilization and High Fertilization.").save()
 
-	models.Scenario(name='C2VSIM_SPRING_2015', active_in_mantis=True, scenario_type=models.Scenario.TYPE_UNSAT)
+	models.Scenario(name='C2VSIM_SPRING_2015', active_in_mantis=True, scenario_type=models.Scenario.TYPE_UNSAT).save()
 
