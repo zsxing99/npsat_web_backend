@@ -58,7 +58,7 @@ class NestedRegionSerializer(serializers.ModelSerializer):  # for use when neste
 class ScenarioSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = models.Scenario
-		fields = ('name', 'id')
+		fields = ('name', 'id', 'description', 'scenario_type')
 		extra_kwargs = {
 			"id": {
 				"read_only": False,
@@ -66,7 +66,13 @@ class ScenarioSerializer(serializers.ModelSerializer):
 			},
 			'name': {
 				'required': False
-			}
+			},
+			'description': {
+				'required': False
+			},
+			'scenario_type': {
+				'required': False
+			},
 		}
 
 

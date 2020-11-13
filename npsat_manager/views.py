@@ -104,7 +104,13 @@ class ScenarioViewSet(viewsets.ModelViewSet):
 	"""
 	permission_classes = [IsAdminUser | ReadOnly]
 	serializer_class = serializers.ScenarioSerializer
-	queryset = models.Scenario.objects.filter(active_in_mantis=True).order_by('name')
+
+	def get_queryset(self):
+		queryset = models.Scenario.objects.filter(active_in_mantis=True).order_by('name')
+		scenario_type = self.request.query_params.get('scenario_type', None)
+		if scenario_type:
+			queryset = queryset.filter(scenario_type=scenario_type)
+		return queryset
 
 
 class CropViewSet(viewsets.ModelViewSet):
