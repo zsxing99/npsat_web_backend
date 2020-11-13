@@ -1,0 +1,58 @@
+CODE,NAME,ID
+ALFA,Alfalfa,2
+DLFA,Alfalfa Dairy,24
+ALMD,Almonds,4
+APPL,Apple,9
+BARR,Barren,10
+PTBB,Beans Dry,46
+BERM,Bermudagrass,11
+AGRB,Bush Berries,1
+CABG,Cabbage,12
+CANT,Cantaloupe,13
+CRRT,Carrot,17
+ALMC,Cherries,3
+CORN,Corn,14
+DCWH,Corn Silage Wheat Dairy,23
+CWRC,Corn Wheat Rotation without Diary,21
+CWDW,Corn Wheat Silage Rotation Receiving Dairy Application,20
+CWRW,Corn Wheat Silage Rotation without dairy,22
+CUCM,Cucumber,18
+FRSE,Forest-Evergreen,25
+GRAH,Grape High Tonnage,26
+GRAl,Grape Low Tonnage,30
+HAY,Hay,31
+LETT,Head Lettuce,32
+PASI,High Productive Pasture,38
+GRAK,Kiwis,27
+PASL,Less Productive Forage,39
+GRAL,Low Tonnage Grapes,28
+MAPL,Maple,33
+PASM,Moderate Pasture,40
+PASN,Non Irrigated Pasture,41
+OLIV,Olives,34
+ONIO,Onion,35
+ORAN,Orange,36
+PAST,Pasture,42
+ALMP,Peaches Nectarines,7
+PEPP,Peppers,43
+PINE,Pine,44
+ALMI,Pistachios,5
+ALML,Plums Prunes,6
+ORCP,Pomegranates,37
+POTA,Potato,45
+RNGB,Range-Brush,49
+RNGE,Range-Grasses,50
+RICE,Rice,47
+SUNS,Safflower,52
+SUNF,Sunflower,51
+GRAT,Table Grape,29
+TOMA,Tomato,53
+COTS,Upland Cotton (stripper),16
+COTP,Upland Cotton-harvested,15
+URML,'Urban',54
+WALN,Walnut,55
+WETL,Wetlands-Mixed,56
+CWDC,Wheat Corn Rotation with Dairy,19
+RICW,Wild Rice,48
+WWHT,Winter Wheat,57
+ALMY,Young Perennials,8

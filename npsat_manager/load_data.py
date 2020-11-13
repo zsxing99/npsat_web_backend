@@ -6,6 +6,7 @@ from npsat_backend import settings
 
 from npsat_manager import models
 
+data_folder = os.path.join(settings.BASE_DIR, "npsat_manager", "data")
 
 def load_all():
 	load_crops()
@@ -20,17 +21,50 @@ def load_regions():
 	load_townships()
 
 
-def load_crops():
+def load_crops(crop_csv=os.path.join(data_folder, "crops", "gnlm_swat_matched.csv"),
+               swat_name_field="SWAT_Name",
+               swat_id_field="SWAT_Value",
+               gnlm_name_field="GNLM_Name",
+               gnlm_id_field="GNLM_Value",
+               group_field="CropGroup_LanduseGroup"):
 	"""
-		At some point this should probably just read a CSV or
-		something like that
+		The crop loading here is very basic - it does add some relationships, but they're not all correct yet.
+		It's good enough for now though. I'm only loading the SWAT->GNLM data and not the other way around, technically,
+		except I load it as both (that is, the GNLM crops have the SWAT relationships still, but they might not be
+		 right for the long run). It also doesn't load groups yet. No crop has both a GNLM and a SWAT code right now
+		 - they all have only one or the other. I might keep things that way
 	:return:
 	"""
 
-	crops = [("All Other Crops", 0), ("Corn", 606), ("Grapes", 2200)]
+	# add ALL Other Crops first
+	models.Crop.objects.create(name="All Other Crops", crop_type=models.Crop.ALL_OTHER_CROPS)
 
-	for crop in crops:
-		models.Crop(name=crop[0], caml_code=crop[1], crop_type=models.Crop.GNLM_CROP, active_in_mantis=True).save()
+	with open(crop_csv, 'r') as csv_data:
+		crop_list = csv.DictReader(csv_data)
+
+		for record in crop_list:
+			# make sure both the GNLM and SWAT variants exist
+			try:
+				swat_crop = models.Crop.objects.get(swat_code=record[swat_id_field])
+			except models.Crop.DoesNotExist:
+				swat_crop = models.Crop(name=record[swat_name_field],
+				                        swat_code=record[swat_id_field],
+				                        crop_type=models.Crop.SWAT_CROP)
+				swat_crop.save()
+
+			try:
+				gnlm_crop = models.Crop.objects.get(caml_code=record[gnlm_id_field])
+			except models.Crop.DoesNotExist:
+				gnlm_crop = models.Crop(name=record[gnlm_name_field],
+				                        caml_code=record[gnlm_id_field],
+				                        crop_type=models.Crop.GNLM_CROP)
+				gnlm_crop.save()
+
+			# bidirectionally add relationships for them
+			swat_crop.similar_crops.add(gnlm_crop)
+			gnlm_crop.similar_crops.add(swat_crop)
+			swat_crop.save()
+			gnlm_crop.save()
 
 
 def load_counties():

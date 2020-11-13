@@ -56,17 +56,17 @@ class Crop(models.Model):
     SWAT_CROP = 0
     GNLM_CROP = 1
     GENERAL_CROP = 2
-    ALL_OTHER_CROP = 3
+    ALL_OTHER_CROPS = 3
     CROP_TYPES = [
         (SWAT_CROP, 'SWAT'),
         (GNLM_CROP, 'GNLM'),
         (GENERAL_CROP, 'BOTH'),
-        (ALL_OTHER_CROP, 'Special identifier of all other crops')
+        (ALL_OTHER_CROPS, 'Special identifier of all other crops')
     ]
 
     name = models.CharField(max_length=255)
-    caml_code = models.PositiveSmallIntegerField(null=True)
-    dwr_code = models.PositiveSmallIntegerField(null=True)
+    caml_code = models.PositiveSmallIntegerField(null=True, blank=True)
+    swat_code = models.PositiveSmallIntegerField(null=True, blank=True)
     crop_type = models.PositiveSmallIntegerField(choices=CROP_TYPES)
     # groups reverse relationship
     similar_crops = models.ManyToManyField("Crop", blank=True, related_name="similar_backward")
@@ -142,8 +142,8 @@ class Scenario(models.Model):
     GNLM_CROP = 0
     SWAT_CROP = 1
     CROP_CODE_TYPE = [
-        (GNLM_CROP, "camel_code"),
-        (SWAT_CROP, "dwr_code")
+        (GNLM_CROP, "caml_code"),
+        (SWAT_CROP, "swat_code")
     ]
 
     name = models.CharField(max_length=255, null=False, blank=False)
