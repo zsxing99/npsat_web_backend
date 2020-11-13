@@ -122,7 +122,22 @@ class CropViewSet(viewsets.ModelViewSet):
 	permission_classes = [IsAdminUser | ReadOnly]  # Admin users can do any operation, others, can read from the API, but not write
 
 	serializer_class = serializers.CropSerializer
-	queryset = models.Crop.objects.order_by('name')
+
+	def get_queryset(self):
+		queryset = models.Crop.objects.filter(active_in_mantis=True).order_by('name')
+		scenario_id = self.request.query_params.get('flow_scenario', None)
+		if scenario_id:
+			scenario = models.Scenario.objects.get(id=scenario_id)
+			crop_type = scenario.CROP_CODE_TYPE
+			crop_type_list = [models.Crop.ALL_OTHER_CROP, models.Crop.GENERAL_CROP]
+			if crop_type:
+				crop_type.append(
+					models.Crop.GNLM_CROP if crop_type == models.Scenario.GNLM_CROP
+					else models.Crop.SWAT_CROP
+				)
+			queryset = queryset.filter(crop_type__in=crop_type_list)
+		return queryset
+
 
 
 class RegionViewSet(viewsets.ModelViewSet):
