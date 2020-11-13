@@ -1,0 +1,208 @@
+LU_Name,DWR_CAML_Code,CropGroup_LanduseGroup
+(Unknown referent),2161,No data
+Airport runways,2156,Barren
+Alfalfa,1601,"Alfalfa, Clover"
+Alkali Desert Scrub,4,Shrub/Forest
+Almonds,412,Nuts
+Annual Grassland,3,Native Pasture
+Apricots,402,Tree Fruit
+Artichokes,2001,Vegetables and Berries
+Asparagus,2002,Vegetables and Berries
+Aspen,5,Shrub/Forest
+Avocados,305,Subtropical
+Barley,701,Grain and Hay
+Barren,6,Barren
+Barren and Wasteland,1410,Barren
+Barren Land,1413,Barren
+Beans (dry),610,Field Crops
+Beans (green),2003,Vegetables and Berries
+Bitterbrush,7,Shrub/Forest
+Blue Oak Woodland,9,Shrub/Forest
+Blue Oak-Foothill Pine,8,Shrub/Forest
+Brackish water,1465,Water
+Broccoli,2022,Vegetables and Berries
+Brush and Timber,1455,Shrub/Forest
+Brussels Sprouts,2025,Vegetables and Berries
+Bush berries,2019,Vegetables and Berries
+Cabbage,2023,Vegetables and Berries
+Carrots,2006,Vegetables and Berries
+Cauliflower,2024,Vegetables and Berries
+Celery,2007,Vegetables and Berries
+Cemeteries - irrigated,2134,Urban
+Cemeteries - non-irrigated,2135,Urban
+Chamise-Redshank Chaparral,12,Shrub/Forest
+Cherries,403,Tree Fruit
+Citrus and Subtropical (Also Miscellaneous subtropical and jojoba),300,Subtropical
+Closed-Cone Pine-Cypress,11,Shrub/Forest
+Clover,1602,"Alfalfa, Clover"
+Coastal Oak Woodland,10,Shrub/Forest
+Coastal Scrub,13,Shrub/Forest
+Commercial,2110,Industrial
+Corn (Field and Sweet),606,"Corn, Sorghum, Sudan"
+Cotton,601,Cotton
+Dairy farm,1903,Farm
+Dates,304,Subtropical
+Deciduous Fruits and Nuts,400,Tree Fruit
+Desert Riparian,15,Riparian
+Desert Scrub,17,Shrub/Forest
+Desert Succulent Shrub,18,Shrub/Forest
+Desert Wash,19,Water
+DirectAppCode = 1 (urban),10001,Urban (DirAppCode 1)
+DirectAppCode = 2 (lagoon),10002,Lagoons (DirAppCode 2)
+DirectAppCode = 3 (corrals),10003,Corrals (DirAppCode 3)
+DirectAppCode = 5 (golf courses),10005,Golf Courses (DirAppCode 5)
+DirectAppCode = 65xx (FP percolation basins),16500,FP Percolation Basins (DirAppCode 65xx)
+DirectAppCode = 6xxx (WWTP percolation basins),16000,WWTP Percolation Basins (DirAppCode 6xxx)
+Douglas-Fir,14,Shrub/Forest
+Dry stream channels,1411,Barren
+Eastside Pine,20,Shrub/Forest
+Estuarine,21,Water
+Eucalyptus,77,Shrub/Forest
+Eucalyptus,310,Shrub/Forest
+Extractive Industries,2122,Industrial
+Farmstead (with residence),1901,Farm
+Farmstead (without residence),1905,Farm
+"Field Crops (includes Flax, Hops, Castor Beans, Miscellaneous Field, and Millet)",600,Field Crops
+Figs,409,Tree Fruit
+"Flowers, nursery, Christmas tree farms",2016,Vegetables and Berries
+Forest,1456,Shrub/Forest
+Freshwater Emergent Wetland,22,Riparian
+"Freshwater lake, reservoir",1464,Water
+Fruit and Vegetable cannery,212911,Industrial
+Golf course,2132,Urban
+Grain and Hay (includes miscellaneous),700,Grain and Hay
+Grain sorghum,607,"Corn, Sorghum, Sudan"
+Grapefruit,301,Subtropical
+Grassland,1451,Native Pasture and Grassland
+Greenhouse,2027,Industrial
+Heavy Brush,1454,Shrub/Forest
+Hotels,2112,Urban
+Idle â€“ Cropped Past 3 Years,901,Barren
+Idle â€“ New Lands,902,Barren
+Induced high water table native pasture,1605,Native Pasture and Grassland
+Industrial,2120,Industrial
+Institutions,2115,Urban
+Jeffrey Pine,24,Shrub/Forest
+Joshua Tree,25,Shrub/Forest
+Juniper,26,Shrub/Forest
+Kiwis,308,Subtropical
+Klamath Mixed Conifer,27,Shrub/Forest
+Lacustrine,28,Water
+Lawn - irrigated,2131,Urban
+Lemons,302,Subtropical
+Lettuce,2008,Vegetables and Berries
+Light Brush,1452,Shrub/Forest
+Livestock feedlot operation,1902,Farm
+Lodgepole Pine,29,Shrub/Forest
+Low Sage,30,Shrub/Forest
+Manufacturing,2121,Industrial
+Marine,31,Water
+Meat Packing Plants,2129,Industrial
+Medium Brush,1453,Shrub/Forest
+"Melons, squash, cucumbers",2009,Vegetables and Berries
+Mine Tailings,1412,Barren
+Miscellaneous grasses,1606,Native Pasture and Grassland
+Miscellaneous high water use,2118,Urban
+Miscellaneous high water use,212912,Industrial
+Mixed Chaparral,32,Shrub/Forest
+Mixed deciduous (Apples),401,Tree Fruit
+Mixed pasture,1603,Pasture
+Montane Chaparral,34,Shrub/Forest
+Montane Hardwood,36,Shrub/Forest
+Montane Hardwood-Conifer,35,Shrub/Forest
+Montane Riparian,37,Shrub/Forest
+Motels,2113,Urban
+Multiple family,2143,Urban
+Municipal buildings,2117,Urban
+Native Pasture,1604,Native Pasture and Grassland
+Native Vegetation,1450,Native Vegetation
+Native Vegetation (unsegregated),1420,Native Vegetation
+Natural Vegetation (backcasted),2,Native Vegetation
+No Access,500,No data
+No data,0,No data
+Non-Irrigated Pasture,72,Native Pasture and Grassland
+Not surveyed,1440,No data
+Oak grassland,1457,Native Pasture and Grassland
+Oats,703,Grain and Hay
+Offices,2111,Urban
+Oil refineries,2127,Industrial
+Olives,306,Olives
+Onions and garlic,2010,Vegetables and Berries
+Oranges,303,Subtropical
+Ornamental landscape,2133,Urban
+Out of area,2600,No data
+Palm Oasis,41,Shrub/Forest
+Paper mills,2128,Industrial
+Pasture,1600,Pasture
+Paved areas,2154,Barren
+Peaches and Nectarines,405,Tree Fruit
+Pears,406,Tree Fruit
+Peas,2011,Vegetables and Berries
+Peppers,2021,Vegetables and Berries
+Perennial Grassland,39,Native Pasture and Grassland
+Pinyon-Juniper,40,Shrub/Forest
+Pistachios,414,Nuts
+Plums,407,Tree Fruit
+Ponderosa Pine,42,Shrub/Forest
+Potatoes,2012,Vegetables and Berries
+Poultry farm,1904,Farm
+Prunes,408,Tree Fruit
+Railroad right of way,2153,Barren
+Red Fir,45,Shrub/Forest
+Redwood,44,Shrub/Forest
+Residential,2140,Urban
+Rice (includes rice & wild rice subclasses),1800,Rice
+Riparian Marsh,1431,Riparian
+Riparian Meadow,1432,Riparian
+Riparian permanent duck marsh,1435,Riparian
+Riparian seasonal duck marsh,1434,Riparian
+Riparian Tree,1433,Riparian
+Riparian Vegetation,1430,Riparian
+River,1461,Water
+Riverine,43,Water
+RV Parking,2114,Urban
+Safflower,602,Field Crops
+Sagebrush,50,Shrub/Forest
+Saline Emergent Wetland,49,Shrub/Forest
+Salt Flats,1414,Barren
+Sand dunes,1415,Barren
+Saw Mills,2126,Industrial
+Schools,2116,Urban
+Sewage treatment plant,212913,Industrial
+Sierran Mixed Conifer,51,Shrub/Forest
+Single family > 1 acre,2141,Urban
+Single family 1-8 units/acre,2142,Urban
+Spinach,2014,Vegetables and Berries
+Steel mill,212910,Industrial
+Storage and distribution,2123,Industrial
+Strawberries,2020,Vegetables and Berries
+Subalpine Conifer,48,Shrub/Forest
+Sudan,608,"Corn, Sorghum, Sudan"
+Sugar Beets,605,Field Crops
+Sunflowers,612,Field Crops
+Sweet Potatoes,2013,Vegetables and Berries
+Tomatoes (processing),2015,Vegetables and Berries
+Trailer Courts,2144,Urban
+"Truck,Nursery, Berry Crops (includes cole mix, mixed, and misc. truck crops)",2000,Vegetables and Berries
+Turf farms,1607,Pasture
+Undetermined Conifer Type,63,Shrub/Forest
+Undetermined Shrub Type,62,Shrub/Forest
+Unpaved,2151,Barren
+Urban,53,Urban
+Urban,2100,Urban
+Urban (backcasted),1,Urban
+Urban landscape,2130,Urban
+Vacant,2150,Barren
+Vacant unlisted,2152,Barren
+Valley Foothill Riparian,56,Riparian
+Valley Oak Woodland,55,Shrub/Forest
+"Vineyards (includes table grapes, wine grapes, and raisins)",2200,Vineyards
+Walnuts,413,Nuts
+Waste accumulation sites,212914,Industrial
+Water,57,Water
+Water channel,1462,Water
+Water Surface,1460,Water
+Wet Meadow,59,Riparian
+Wheat,702,Grain and Hay
+White Fir,58,Shrub/Forest
+Wind farms/solar farms,212915,Industrial

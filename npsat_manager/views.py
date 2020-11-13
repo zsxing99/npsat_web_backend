@@ -129,7 +129,7 @@ class CropViewSet(viewsets.ModelViewSet):
 		if scenario_id:
 			scenario = models.Scenario.objects.get(id=scenario_id)
 			crop_type = scenario.CROP_CODE_TYPE
-			crop_type_list = [models.Crop.ALL_OTHER_CROP, models.Crop.GENERAL_CROP]
+			crop_type_list = [models.Crop.ALL_OTHER_CROPS, models.Crop.GENERAL_CROP]
 			if crop_type:
 				crop_type.append(
 					models.Crop.GNLM_CROP if crop_type == models.Scenario.GNLM_CROP

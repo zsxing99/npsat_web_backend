@@ -22,25 +22,25 @@ from npsat_manager import views
 
 from rest_framework import permissions
 from rest_framework.schemas import get_schema_view as drf_get_schema_view
-from drf_yasg.views import get_schema_view
-from drf_yasg import openapi
+#from drf_yasg.views import get_schema_view
+#from drf_yasg import openapi
 
-schema_view = get_schema_view(
-   openapi.Info(
-      title="NPSAT/Mantis API",
-      default_version='v1',
-      description="Test description",
-      terms_of_service="ToDo! ",
-      contact=openapi.Contact(email="contact@snippets.local"),
-      license=openapi.License(name="MIT License"),
-   ),
-   public=True,
-   permission_classes=(permissions.IsAuthenticatedOrReadOnly,),
-)
+#schema_view = get_schema_view(
+#   openapi.Info(
+#      title="NPSAT/Mantis API",
+#      default_version='v1',
+#      description="Test description",
+#      terms_of_service="ToDo! ",
+#      contact=openapi.Contact(email="contact@snippets.local"),
+#      license=openapi.License(name="MIT License"),
+#   ),
+#   public=True,
+#   permission_classes=(permissions.IsAuthenticatedOrReadOnly,),
+#)
 
 # set up DRF
 router = routers.DefaultRouter()
-router.register(r'crops', views.CropViewSet)
+router.register(r'crops', views.CropViewSet, basename="Crop")
 router.register(r'region', views.RegionViewSet, basename="Region")
 router.register(r'model_run', views.ModelRunViewSet, basename="ModelRun")
 router.register(r'modification', views.ModificationViewSet, basename="Modification")
@@ -53,7 +53,7 @@ urlpatterns = [
     url(r'^api-token-auth/', views.CustomAuthToken.as_view()),  # POST a username and password here, get a token back
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 
-    # dashboard fee
+    # dashboard feed
     url(r'^api/feed/', views.FeedOnDashboard.as_view()),
 
     # DRF docs from drf-yasg
