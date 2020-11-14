@@ -128,16 +128,15 @@ class CropViewSet(viewsets.ModelViewSet):
 		scenario_id = self.request.query_params.get('flow_scenario', False)
 		if scenario_id:
 			scenario = models.Scenario.objects.get(id=scenario_id)
-			crop_type = scenario.CROP_CODE_TYPE
+			crop_type = scenario.crop_code_field
 			crop_type_list = [models.Crop.ALL_OTHER_CROPS, models.Crop.GENERAL_CROP]
 			if crop_type:
-				crop_type.append(
+				crop_type_list.append(
 					models.Crop.GNLM_CROP if crop_type == models.Scenario.GNLM_CROP
 					else models.Crop.SWAT_CROP
 				)
 			queryset = queryset.filter(crop_type__in=crop_type_list)
 		return queryset
-
 
 
 class RegionViewSet(viewsets.ModelViewSet):

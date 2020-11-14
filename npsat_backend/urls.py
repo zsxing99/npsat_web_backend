@@ -40,12 +40,12 @@ from rest_framework.schemas import get_schema_view as drf_get_schema_view
 
 # set up DRF
 router = routers.DefaultRouter()
-router.register(r'crops', views.CropViewSet, basename="Crop")
+router.register(r'crop', views.CropViewSet, basename="Crop")
 router.register(r'region', views.RegionViewSet, basename="Region")
 router.register(r'model_run', views.ModelRunViewSet, basename="ModelRun")
 router.register(r'modification', views.ModificationViewSet, basename="Modification")
 router.register(r'scenario', views.ScenarioViewSet, basename="Scenario")
-router.register(r'model_results', views.ResultPercentileViewSet, basename="ResultPercentile")
+router.register(r'model_result', views.ResultPercentileViewSet, basename="ResultPercentile")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
