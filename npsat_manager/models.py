@@ -293,7 +293,7 @@ class ModelRun(models.Model):
         for modification in modifications:
             msg += f" {getattr(modification.crop, crop_code_field)} {modification.proportion}"
 
-        msg += "ENDofMSG"
+        msg += "ENDofMSG\n"
         return msg
 
 class ResultPercentile(models.Model):
@@ -428,8 +428,9 @@ def process_results(results, model_run):
     results_values = [value for value in results_values if value not in (
         "", "\n")]  # drop any extra empty values we got because they make the total number go off
     model_run.n_wells = int(results_values[1])
+    # n_years = int(results_value[2])  # we're not using this right now
     results_values = results_values[
-                     2:-1]  # first value is status message, second value is number of wells, last is "EndOfMsg"
+                     3:-1]  # first value is status message, second value is number of wells, third is number of years, last is "EndOfMsg"
 
     # we need to have a number of results divisible by the number of wells and the number of years, so do some checks
     if len(results_values) % model_run.n_years != 0 or (len(results_values) / model_run.n_wells) != model_run.n_years:
