@@ -19,16 +19,11 @@ from npsat_backend import settings
 
 log = logging.getLogger("npsat.manager")
 
-mantis_area_map_id = {
-    "Central Valley": 1,
-    "SubBasin": 2,
-    "CVHMFarm": 5,
-    "B118Basin": 4,
-    "County": 3,
-}
-
 
 class PercentileAggregate(models.Aggregate):
+    """
+        I'm pretty sure we aren't using this and I'm just saving it in case we want to adapt it
+    """
     function = 'PERCENTILE_CONT'
     name = 'pct'
     output = models.FloatField()
@@ -112,6 +107,15 @@ class Region(models.Model):
         (TOWNSHIPS, "Townships"),
         (C2V_SIM_SUBREGIONS, "C2VsimSubregions")
     ]
+    REGION_TYPE_MANTIS = {
+        CENTRAL_VALLEY: "CentralValley",
+        SUB_BASIN: "Basins",
+        COUNTY: "Counties",
+        B118_BASIN: "B118",
+        TOWNSHIPS: "Townships",
+        CVHM_FARM: "CVHMfarms",
+        C2V_SIM_SUBREGIONS: "C2VsimSubregions"
+    }
 
     mantis_id = models.IntegerField(null=True)
     name = models.CharField(max_length=255)
@@ -267,6 +271,30 @@ class ModelRun(models.Model):
 
         self.save()
 
+    @property
+    def input_message(self):
+        msg = f"endSimYear {str(1945+self.n_years)}"
+        msg += f" startRed {self.reduction_start_year}"
+        msg += f" endRed {self.reduction_end_year}"
+        msg += f" flowScen {self.flow_scenario.name}"
+        msg += f" loadScen {self.load_scenario.name}"
+        msg += f" unsatScen {self.unsat_scenario.name}"
+        msg += f" unsatWC {self.unsaturated_zone_travel_time}"
+
+        regions = list(self.regions.all())  # coercing to list so I can get the type of the first one - we'll use them all in a moment anyway
+        msg += f" bMap {Region.REGION_TYPE_MANTIS[regions[0].region_type]}"
+        msg += f" Nregions {len(regions)}"
+        for region in regions:
+            msg += f" {region.mantis_id}"
+
+        modifications = list(self.modifications)
+        crop_code_field = self.load_scenario.crop_code_field
+        msg += f" Ncrops {len(modifications)}"
+        for modification in modifications:
+            msg += f" {getattr(modification.crop, crop_code_field)} {modification.proportion}"
+
+        msg += "ENDofMSG"
+        return msg
 
 class ResultPercentile(models.Model):
     model = models.ForeignKey(ModelRun, on_delete=models.CASCADE, related_name="results")
@@ -358,39 +386,7 @@ class MantisServer(models.Model):
         # mantis_reader, mantis_writer = asyncio.open_connection(server.host, server.port)
         # log.debug("Connected successfully")
 
-        region_type = model_run.regions.all()[0].region_type
-        modifications = model_run.modifications.all()
-        # sent the command to the server
-        # detailed input refers to https://github.com/giorgk/Mantis#format-of-input-message
-        command_string = "{} {} {} {}".format(model_run.n_years, model_run.reduction_year, model_run.water_content,
-                                              model_run.scenario.name)
-        command_string += " {}".format(mantis_area_map_id[region_type])
-        # use len() to cache db query
-        command_string += " {}".format(len(model_run.regions.all()))
-        if mantis_area_map_id[region_type] != 1:
-            for region in model_run.regions.all():
-                command_string += " {}".format(region.mantis_id)
-
-        # enable all crops, for those that are not explicitly selected, use data in All other crops
-        num_crops = len(Crop.objects.all())
-        selected_crops = set()
-        all_crops_param = 0
-        crops_input = ''
-        for modification in modifications.all():
-            if modification.crop.caml_code == 0:
-                all_crops_param = modification.proportion
-                continue
-            # assume all modifications are active in mantis
-            crops_input += " {} {}".format(modification.crop.caml_code, 1 - modification.proportion)
-            selected_crops.add(modification.crop.caml_code)
-        # add all remaining crops
-        for crop in Crop.objects.all():
-            if crop.caml_code not in selected_crops:
-                crops_input += " {} {}".format(crop.caml_code, 1 - all_crops_param)
-
-        command_string += ' {}'.format(num_crops)
-        command_string += crops_input
-        command_string += ' ENDofMSG\n'
+        command_string = model_run.input_message
         log.info("Command String is: {}".format(command_string))
         s.send(command_string.encode('utf-8'))
 
