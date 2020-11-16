@@ -117,7 +117,7 @@ class Region(models.Model):
         C2V_SIM_SUBREGIONS: "C2VsimSubregions"
     }
 
-    mantis_id = models.IntegerField(null=True)
+    mantis_id = models.CharField(null=True, max_length=255)
     name = models.CharField(max_length=255)
     active_in_mantis = models.BooleanField(default=True)  # Is this region actually ready to be selected?
     geometry = SimpleJSONField(null=True, blank=True)  #
@@ -154,7 +154,7 @@ class Scenario(models.Model):
     active_in_mantis = models.BooleanField(default=True)
     description = models.TextField(null=True, blank=True)
     scenario_type = models.PositiveSmallIntegerField(choices=SCENARIO_TYPE)
-    crop_code_field = models.CharField(max_length=10, choices=CROP_CODE_TYPE, blank=True, null=True)
+    crop_code_field = models.PositiveSmallIntegerField(choices=CROP_CODE_TYPE, blank=True, null=True)
 
 
 # class AreaGroup(models.Model):
@@ -279,7 +279,7 @@ class ModelRun(models.Model):
         msg += f" flowScen {self.flow_scenario.name}"
         msg += f" loadScen {self.load_scenario.name}"
         msg += f" unsatScen {self.unsat_scenario.name}"
-        msg += f" unsatWC {self.unsaturated_zone_travel_time}"
+        msg += f" unsatWC {self.water_content}"
 
         regions = list(self.regions.all())  # coercing to list so I can get the type of the first one - we'll use them all in a moment anyway
         msg += f" bMap {Region.REGION_TYPE_MANTIS[regions[0].region_type]}"
@@ -287,14 +287,37 @@ class ModelRun(models.Model):
         for region in regions:
             msg += f" {region.mantis_id}"
 
-        modifications = list(self.modifications)
-        crop_code_field = self.load_scenario.crop_code_field
-        msg += f" Ncrops {len(modifications)}"
-        for modification in modifications:
-            msg += f" {getattr(modification.crop, crop_code_field)} {modification.proportion}"
+        modifications = self.modifications.all()
+        crop_code_field = self.load_scenario.get_crop_code_field_display()
 
-        msg += "ENDofMSG\n"
+        # use a hash map to store all explicit modifications
+        explicit_modifications = {}
+        for modification in modifications:
+            # all other crops
+            if modification.crop.crop_type == Crop.ALL_OTHER_CROPS:
+                explicit_modifications["All"] = modification.proportion
+            # other explicit crop selection
+            else:
+                explicit_modifications[modification.crop.id] = modification.proportion
+
+        msg += f" Ncrops {len(modifications)}"
+        # retrieve all crop within this load scen
+        crop_list = [Crop.GENERAL_CROP, ]
+        if self.load_scenario.crop_code_field == Scenario.GNLM_CROP:
+            crop_list.append(Crop.GNLM_CROP)
+        elif self.load_scenario.crop_code_field == Scenario.SWAT_CROP:
+            crop_list.append(Crop.SWAT_CROP)
+
+        all_crops_belonged_to_load_scen = Crop.objects.filter(crop_type__in=crop_list)
+        for crop in all_crops_belonged_to_load_scen:
+            if crop.id in explicit_modifications:
+                msg += f" {getattr(crop, crop_code_field)} {explicit_modifications[crop.id]}"
+            else:
+                msg += f" {getattr(crop, crop_code_field)} {explicit_modifications['All']}"
+
+        msg += " ENDofMSG\n"
         return msg
+
 
 class ResultPercentile(models.Model):
     model = models.ForeignKey(ModelRun, on_delete=models.CASCADE, related_name="results")
