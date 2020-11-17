@@ -134,7 +134,7 @@ def load_townships():
 
 def load_b118_basin():
 	def b118_mantis_id_loader(data):
-		return data["BAS_SBBSN"]
+		return data["BAS_SBBSN"].replace('-', '_')
 
 	b118_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "B118", "B118_filtered_2018.geojsonl.json")
 	load_spec_regions(b118_file, (("SUBNAME", "name"), ("SUBBSN", "external_id")), region_type=models.Region.B118_BASIN,
