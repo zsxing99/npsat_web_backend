@@ -126,10 +126,18 @@ def load_townships():
 	def townships_mantis_id_loader(data):
 		return data["CO_MTR"]
 
-	basin_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "townships", "geojson", "townships.geojson")
-	load_spec_regions(basin_file, (("TOWNSHIP", "name"), ("TOWNSHIP", "external_id")), region_type=models.Region.TOWNSHIPS,
+	township_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "townships", "geojson", "townships.geojson")
+	load_spec_regions(township_file, (("TOWNSHIP", "name"), ("CO_MTR", "external_id")), region_type=models.Region.TOWNSHIPS,
 					  mantis_id_loader=townships_mantis_id_loader)
 
+
+def load_b118_basin():
+	def b118_mantis_id_loader(data):
+		return data["BAS_SBBSN"]
+
+	b118_file = os.path.join(settings.BASE_DIR, "npsat_manager", "data", "B118", "B118_filtered_2018.geojsonl.json")
+	load_spec_regions(b118_file, (("SUBNAME", "name"), ("SUBBSN", "external_id")), region_type=models.Region.B118_BASIN,
+					  mantis_id_loader=b118_mantis_id_loader)
 
 def load_spec_regions(json_file, field_map, region_type, mantis_id_loader=None):
 	"""
