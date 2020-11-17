@@ -1,0 +1,128 @@
+LULC,SWAT_Value,GNLM_Value,SWAT_Name,GNLM_Name,Area,total_crop_area,CropGroup_LanduseGroup,Include
+ALFA,2,700,Alfalfa,Grain and Hay (includes miscellaneous),228245000,1675745000,Grain and Hay,2
+ALFA,2,1601,Alfalfa,Alfalfa,492135000,1675745000,"Alfalfa, Clover",1
+ALMC,3,403,Cherries,Cherries,60375000,169270000,Tree Fruit,1
+ALMD,4,412,Almonds,Almonds,2343710000,4618772500,Nuts,1
+ALMI,5,414,Pistachios,Pistachios,481255000,1365530000,Nuts,1
+ALML,6,407,Plums Prunes,Plums,49757500,346422500,Tree Fruit,0
+ALML,6,408,Plums Prunes,Prunes,157755000,346422500,Tree Fruit,0
+ALMP,7,405,Peaches Nectarines,Peaches and Nectarines,187805000,315745000,Tree Fruit,1
+ALMY,8,3,Young Perennials,Annual Grassland,11795000,127880000,Native Pasture,1
+APPL,9,401,Apple,Mixed deciduous (Apples),16015000,53457500,Tree Fruit,1
+BERM,11,53,Bermudagrass,Urban,2985025000,3332292500,Urban,1
+CANT,13,2009,Cantaloupe,"Melons, squash, cucumbers",29557500,228797500,Vegetables and Berries,1
+CORN,14,606,Corn,Corn (Field and Sweet),98577500,280415000,"Corn, Sorghum, Sudan",1
+COTP,15,601,Upland Cotton-harvested,Cotton,440290000,875247500,Cotton,1
+CRRT,17,2006,Carrot,Carrots,24485000,128712500,Vegetables and Berries,1
+CWDW,20,1601,Corn Wheat Silage Rotation Receiving Dairy Application,Alfalfa,279497500,1229105000,"Alfalfa, Clover",2
+CWDW,20,606,Corn Wheat Silage Rotation Receiving Dairy Application,Corn (Field and Sweet),316525000,1229105000,"Corn, Sorghum, Sudan",1
+CWDW,20,700,Corn Wheat Silage Rotation Receiving Dairy Application,Grain and Hay (includes miscellaneous),321245000,1229105000,Grain and Hay,2
+CWRW,22,700,Corn Wheat Silage Rotation without dairy,Grain and Hay (includes miscellaneous),219702500,1183587500,Grain and Hay,2
+CWRW,22,1601,Corn Wheat Silage Rotation without dairy,Alfalfa,242790000,1183587500,"Alfalfa, Clover",2
+CWRW,22,606,Corn Wheat Silage Rotation without dairy,Corn (Field and Sweet),251290000,1183587500,"Corn, Sorghum, Sudan",1
+DLFA,24,700,Alfalfa Dairy,Grain and Hay (includes miscellaneous),64335000,386362500,Grain and Hay,2
+DLFA,24,1601,Alfalfa Dairy,Alfalfa,151110000,386362500,"Alfalfa, Clover",1
+GRAH,26,2200,Grape High Tonnage,"Vineyards (includes table grapes, wine grapes, and raisins)",1168045000,1504890000,Vineyards,1
+GRAK,27,308,Kiwis,Kiwis,9322500,19620000,Subtropical,1
+GRAl,30,2200,Grape Low Tonnage,"Vineyards (includes table grapes, wine grapes, and raisins)",372752500,590677500,Vineyards,1
+GRAT,29,2200,Table Grape,"Vineyards (includes table grapes, wine grapes, and raisins)",353162500,433542500,Vineyards,1
+HAY,31,1601,Hay,Alfalfa,31415000,259685000,"Alfalfa, Clover",2
+HAY,31,700,Hay,Grain and Hay (includes miscellaneous),53482500,259685000,Grain and Hay,1
+OLIV,34,306,Olives,Olives,89787500,188005000,Olives,1
+ORAN,36,303,Orange,Oranges,647190000,919187500,Subtropical,1
+ORCP,37,401,Pomegranates,Mixed deciduous (Apples),41910000,130657500,Tree Fruit,0
+PASI,38,1603,High Productive Pasture,Mixed pasture,231380000,342920000,Pasture,2
+PASL,39,1603,Less Productive Forage,Mixed pasture,162102500,228902500,Pasture,2
+PASM,40,1603,Moderate Pasture,Mixed pasture,80415000,198420000,Pasture,1
+PASN,41,3,Non Irrigated Pasture,Annual Grassland,852500,867500,Native Pasture,1
+PAST,42,700,Pasture,Grain and Hay (includes miscellaneous),14057500,109770000,Grain and Hay,2
+PAST,42,1603,Pasture,Mixed pasture,15772500,109770000,Pasture,1
+PAST,42,1601,Pasture,Alfalfa,18915000,109770000,"Alfalfa, Clover",2
+PTBB,46,610,Beans Dry,Beans (dry),29530000,160942500,Field Crops,1
+RICE,47,1800,Rice,Rice (includes rice & wild rice subclasses),1613520000,1826612500,Rice,1
+RICW,48,1800,Wild Rice,Rice (includes rice & wild rice subclasses),2380000,9200000,Rice,2
+RNGB,49,3,Range-Brush,Annual Grassland,276007500,338530000,Native Pasture,2
+RNGE,50,3,Range-Grasses,Annual Grassland,5038485000,10511102500,Native Pasture,1
+SUNF,51,700,Sunflower,Grain and Hay (includes miscellaneous),39087500,200712500,Grain and Hay,1
+SUNS,52,1601,Safflower,Alfalfa,38560000,159617500,"Alfalfa, Clover",1
+TOMA,53,2015,Tomato,Tomatoes (processing),244042500,1172432500,Vegetables and Berries,1
+WALN,55,413,Walnut,Walnuts,696790000,1447167500,Nuts,1
+WETL,56,22,Wetlands-Mixed,Freshwater Emergent Wetland,385272500,1660557500,Riparian,1
+WWHT,57,700,Winter Wheat,Grain and Hay (includes miscellaneous),117002500,593012500,Grain and Hay,1
+AGRB,1,606,Bush Berries,Corn (Field and Sweet),3480000,23615000,"Corn, Sorghum, Sudan",
+AGRB,1,2200,Bush Berries,"Vineyards (includes table grapes, wine grapes, and raisins)",6055000,23615000,Vineyards,
+ALFA,2,606,Alfalfa,Corn (Field and Sweet),172202500,1675745000,"Corn, Sorghum, Sudan",
+ALFA,2,601,Alfalfa,Cotton,244842500,1675745000,Cotton,
+ALMC,3,2200,Cherries,"Vineyards (includes table grapes, wine grapes, and raisins)",14415000,169270000,Vineyards,
+ALMI,5,700,Pistachios,Grain and Hay (includes miscellaneous),120350000,1365530000,Grain and Hay,
+ALMI,5,601,Pistachios,Cotton,214420000,1365530000,Cotton,
+ALML,6,405,Plums Prunes,Peaches and Nectarines,34127500,346422500,Tree Fruit,
+ALMP,7,2200,Peaches Nectarines,"Vineyards (includes table grapes, wine grapes, and raisins)",41687500,315745000,Vineyards,
+ALMY,8,412,Young Perennials,Almonds,15147500,127880000,Nuts,
+ALMY,8,408,Young Perennials,Prunes,16730000,127880000,Tree Fruit,
+APPL,9,406,Apple,Pears,21720000,53457500,Tree Fruit,
+BARR,10,1800,Barren,Rice (includes rice & wild rice subclasses),498985000,3813077500,Rice,
+BARR,10,700,Barren,Grain and Hay (includes miscellaneous),554330000,3813077500,Grain and Hay,
+BARR,10,601,Barren,Cotton,566870000,3813077500,Cotton,
+CABG,12,1601,Cabbage,Alfalfa,3380000,23252500,"Alfalfa, Clover",
+CANT,13,601,Cantaloupe,Cotton,29605000,228797500,Cotton,
+CANT,13,700,Cantaloupe,Grain and Hay (includes miscellaneous),29867500,228797500,Grain and Hay,
+CANT,13,2015,Cantaloupe,Tomatoes (processing),34847500,228797500,Vegetables and Berries,
+CORN,14,700,Corn,Grain and Hay (includes miscellaneous),36707500,280415000,Grain and Hay,
+COTP,15,700,Upland Cotton-harvested,Grain and Hay (includes miscellaneous),79337500,875247500,Grain and Hay,
+COTP,15,1601,Upland Cotton-harvested,Alfalfa,149342500,875247500,"Alfalfa, Clover",
+CRRT,17,1601,Carrot,Alfalfa,11137500,128712500,"Alfalfa, Clover",
+CRRT,17,600,Carrot,"Field Crops (includes Flax, Hops, Castor Beans, Miscellaneous Field, and Millet)",12115000,128712500,Field Crops,
+CRRT,17,601,Carrot,Cotton,14412500,128712500,Cotton,
+CRRT,17,700,Carrot,Grain and Hay (includes miscellaneous),24452500,128712500,Grain and Hay,
+CWRW,22,601,Corn Wheat Silage Rotation without dairy,Cotton,145067500,1183587500,Cotton,
+DLFA,24,601,Alfalfa Dairy,Cotton,36325000,386362500,Cotton,
+DLFA,24,606,Alfalfa Dairy,Corn (Field and Sweet),85982500,386362500,"Corn, Sorghum, Sudan",
+GRAK,27,405,Kiwis,Peaches and Nectarines,1977500,19620000,Tree Fruit,
+GRAK,27,2200,Kiwis,"Vineyards (includes table grapes, wine grapes, and raisins)",2920000,19620000,Vineyards,
+HAY,31,3,Hay,Annual Grassland,28007500,259685000,Native Pasture,
+LETT,32,2015,Head Lettuce,Tomatoes (processing),2580000,29755000,Vegetables and Berries,
+LETT,32,700,Head Lettuce,Grain and Hay (includes miscellaneous),3430000,29755000,Grain and Hay,
+LETT,32,600,Head Lettuce,"Field Crops (includes Flax, Hops, Castor Beans, Miscellaneous Field, and Millet)",3617500,29755000,Field Crops,
+LETT,32,601,Head Lettuce,Cotton,3687500,29755000,Cotton,
+LETT,32,2006,Head Lettuce,Carrots,4127500,29755000,Vegetables and Berries,
+MAPL,33,700,Maple,Grain and Hay (includes miscellaneous),5205000,48227500,Grain and Hay,
+MAPL,33,2200,Maple,"Vineyards (includes table grapes, wine grapes, and raisins)",6140000,48227500,Vineyards,
+MAPL,33,2016,Maple,"Flowers, nursery, Christmas tree farms",10155000,48227500,Vegetables and Berries,
+OLIV,34,3,Olives,Annual Grassland,19217500,188005000,Native Pasture,
+ONIO,35,1601,Onion,Alfalfa,13310000,155660000,"Alfalfa, Clover",
+ONIO,35,600,Onion,"Field Crops (includes Flax, Hops, Castor Beans, Miscellaneous Field, and Millet)",14245000,155660000,Field Crops,
+ONIO,35,2015,Onion,Tomatoes (processing),21090000,155660000,Vegetables and Berries,
+ONIO,35,601,Onion,Cotton,53920000,155660000,Cotton,
+ORCP,37,1601,Pomegranates,Alfalfa,11002500,130657500,"Alfalfa, Clover",
+ORCP,37,700,Pomegranates,Grain and Hay (includes miscellaneous),14872500,130657500,Grain and Hay,
+ORCP,37,601,Pomegranates,Cotton,21007500,130657500,Cotton,
+PASM,40,606,Moderate Pasture,Corn (Field and Sweet),18522500,198420000,"Corn, Sorghum, Sudan",
+PEPP,43,2200,Peppers,"Vineyards (includes table grapes, wine grapes, and raisins)",10940000,127145000,Vineyards,
+PEPP,43,700,Peppers,Grain and Hay (includes miscellaneous),14735000,127145000,Grain and Hay,
+PINE,44,9,Pine,Blue Oak Woodland,1232800000,7691595000,Shrub/Forest,
+PINE,44,3,Pine,Annual Grassland,3184620000,7691595000,Native Pasture,
+POTA,45,412,Potato,Almonds,15172500,126172500,Nuts,
+POTA,45,700,Potato,Grain and Hay (includes miscellaneous),29910000,126172500,Grain and Hay,
+PTBB,46,601,Beans Dry,Cotton,15037500,160942500,Cotton,
+PTBB,46,2015,Beans Dry,Tomatoes (processing),15880000,160942500,Vegetables and Berries,
+PTBB,46,700,Beans Dry,Grain and Hay (includes miscellaneous),18475000,160942500,Grain and Hay,
+PTBB,46,1601,Beans Dry,Alfalfa,19207500,160942500,"Alfalfa, Clover",
+PTBB,46,606,Beans Dry,Corn (Field and Sweet),19385000,160942500,"Corn, Sorghum, Sudan",
+RICW,48,608,Wild Rice,Sudan,1170000,9200000,"Corn, Sorghum, Sudan",
+RICW,48,602,Wild Rice,Safflower,1967500,9200000,Field Crops,
+RICW,48,606,Wild Rice,Corn (Field and Sweet),2442500,9200000,"Corn, Sorghum, Sudan",
+SUNF,51,1601,Sunflower,Alfalfa,20015000,200712500,"Alfalfa, Clover",
+SUNF,51,1800,Sunflower,Rice (includes rice & wild rice subclasses),20655000,200712500,Rice,
+SUNF,51,606,Sunflower,Corn (Field and Sweet),24530000,200712500,"Corn, Sorghum, Sudan",
+SUNF,51,2015,Sunflower,Tomatoes (processing),38932500,200712500,Vegetables and Berries,
+SUNS,52,2015,Safflower,Tomatoes (processing),14085000,159617500,Vegetables and Berries,
+SUNS,52,700,Safflower,Grain and Hay (includes miscellaneous),14842500,159617500,Grain and Hay,
+SUNS,52,601,Safflower,Cotton,49155000,159617500,Cotton,
+TOMA,53,700,Tomato,Grain and Hay (includes miscellaneous),126015000,1172432500,Grain and Hay,
+TOMA,53,1601,Tomato,Alfalfa,126787500,1172432500,"Alfalfa, Clover",
+TOMA,53,601,Tomato,Cotton,289090000,1172432500,Cotton,
+WETL,56,1800,Wetlands-Mixed,Rice (includes rice & wild rice subclasses),142232500,1660557500,Rice,
+WETL,56,3,Wetlands-Mixed,Annual Grassland,595772500,1660557500,Native Pasture,
+WWHT,57,1601,Winter Wheat,Alfalfa,79607500,593012500,"Alfalfa, Clover",
+WWHT,57,601,Winter Wheat,Cotton,108785000,593012500,Cotton,

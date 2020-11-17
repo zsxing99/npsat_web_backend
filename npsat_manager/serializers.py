@@ -8,7 +8,7 @@ from npsat_manager import models
 class CropSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = models.Crop
-		fields = ('id', 'name', 'caml_code')
+		fields = ('id', 'name', 'caml_code', 'crop_type', 'swat_code')
 
 
 class NestedCropSerializer(serializers.ModelSerializer):
@@ -58,7 +58,7 @@ class NestedRegionSerializer(serializers.ModelSerializer):  # for use when neste
 class ScenarioSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = models.Scenario
-		fields = ('name', 'id')
+		fields = ('name', 'id', 'description', 'scenario_type')
 		extra_kwargs = {
 			"id": {
 				"read_only": False,
@@ -66,7 +66,13 @@ class ScenarioSerializer(serializers.ModelSerializer):
 			},
 			'name': {
 				'required': False
-			}
+			},
+			'description': {
+				'required': False
+			},
+			'scenario_type': {
+				'required': False
+			},
 		}
 
 
@@ -136,20 +142,23 @@ class CompletedRunResultWithValuesSerializer(serializers.ModelSerializer):
 		model = models.ModelRun
 		fields = ('id', 'user', 'name', 'description', 'unsaturated_zone_travel_time',
 				  'date_submitted', 'date_completed', 'status', 'status_message', 'n_years', 'water_content',
-				  'reduction_year',  'results', 'n_wells', 'public', 'is_base')
+				  'reduction_start_year', 'reduction_end_year', 'results', 'n_wells', 'public', 'is_base')
 
 
 class RunResultSerializer(serializers.ModelSerializer):
 	modifications = NestedModificationSerializer(many=True, allow_null=True, partial=True)
 	regions = NestedRegionSerializer(many=True, allow_null=True, partial=True, read_only=False)
-	scenario = ScenarioSerializer(many=False, read_only=False, allow_null=True)
+	unsat_scenario = ScenarioSerializer(many=False, read_only=False, allow_null=True)
+	load_scenario = ScenarioSerializer(many=False, read_only=False, allow_null=True)
+	flow_scenario = ScenarioSerializer(many=False, read_only=False, allow_null=True)
 	results = NestedResultPercentileSerializer(many=True, read_only=True)
 
 	class Meta:
 		model = models.ModelRun
 		fields = ('id', 'user', 'name', 'description', 'regions', 'modifications', 'unsaturated_zone_travel_time',
 		          'date_submitted', 'date_completed', 'status', 'status_message', 'n_years', 'water_content',
-				  'reduction_year', 'scenario', 'results', 'n_wells', 'public', 'is_base')
+				  'reduction_start_year', 'reduction_end_year', 'is_base', 'results', 'n_wells', 'public',
+				  'load_scenario', 'flow_scenario', 'unsat_scenario')
 		depth = 0  # should mean that modifications get included in the initial request
 
 	def validate(self, data):
@@ -158,9 +167,15 @@ class RunResultSerializer(serializers.ModelSerializer):
 	def create(self, validated_data):
 		regions_data = validated_data.pop('regions')
 		modifications_data = validated_data.pop('modifications')
-		scenario = validated_data.pop('scenario')
+		unsat_scenario = validated_data.pop('unsat_scenario')
+		load_scenario = validated_data.pop('load_scenario')
+		flow_scenario = validated_data.pop('flow_scenario')
 
-		model_run = models.ModelRun.objects.create(**validated_data, scenario=models.Scenario.objects.get(id=scenario['id']))
+		model_run = models.ModelRun.objects.create(**validated_data,
+												   unsat_scenario=models.Scenario.objects.get(id=unsat_scenario['id']),
+												   flow_scenario=models.Scenario.objects.get(id=flow_scenario['id']),
+												   load_scenario=models.Scenario.objects.get(id=load_scenario['id']),
+												   )
 		for modification in modifications_data:
 			proportion = modification["proportion"]
 			crop_id = modification["crop"]["id"]
