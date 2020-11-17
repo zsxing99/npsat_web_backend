@@ -25,6 +25,7 @@ def load_regions():
 	load_central_valley()
 	load_basins()
 	load_townships()
+	load_b118_basin()
 
 
 def load_crops(crop_csv=os.path.join(data_folder, "crops", "gnlm_swat_matched.csv"),
