@@ -8,9 +8,15 @@ from npsat_manager import models
 
 data_folder = os.path.join(settings.BASE_DIR, "npsat_manager", "data")
 
-def load_all():
+
+def load_all(mantis_port_number=5941):
 	load_crops()
 	load_regions()
+	load_mantis_server(mantis_port_number=mantis_port_number)
+
+
+def load_mantis_server(mantis_port_number):
+	models.MantisServer.objects.create(host="127.0.0.1", port=mantis_port_number)
 
 
 def load_regions():
