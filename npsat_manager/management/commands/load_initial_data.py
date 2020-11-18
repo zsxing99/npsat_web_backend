@@ -14,4 +14,9 @@ class Command(BaseCommand):
 		parser.add_argument('--mantis_port', nargs=1, type=int, dest="mantis_port", default=5941,)
 
 	def handle(self, *args, **options):
-		load_data.load_all(mantis_port_number=options["mantis_port"])
+		if type(options["mantis_port"]) is int:
+			port = options["mantis_port"]
+		else:
+			port = options["mantis_port"][0]
+
+		load_data.load_all(mantis_port_number=port)
