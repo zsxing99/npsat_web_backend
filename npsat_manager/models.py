@@ -156,6 +156,8 @@ class Scenario(models.Model):
     scenario_type = models.PositiveSmallIntegerField(choices=SCENARIO_TYPE)
     crop_code_field = models.PositiveSmallIntegerField(choices=CROP_CODE_TYPE, blank=True, null=True)
 
+    def __str__(self):
+        return self.name
 
 # class AreaGroup(models.Model):
 """
@@ -300,18 +302,25 @@ class ModelRun(models.Model):
             else:
                 explicit_modifications[modification.crop.id] = modification.proportion
 
-        msg += f" Ncrops {len(modifications)}"
         # retrieve all crop within this load scen
         crop_list = [Crop.GENERAL_CROP, ]
-        if self.load_scenario.crop_code_field == Scenario.GNLM_CROP:
+        if int(self.load_scenario.crop_code_field) == Scenario.GNLM_CROP:
             crop_list.append(Crop.GNLM_CROP)
-        elif self.load_scenario.crop_code_field == Scenario.SWAT_CROP:
+        elif int(self.load_scenario.crop_code_field) == Scenario.SWAT_CROP:
             crop_list.append(Crop.SWAT_CROP)
 
         all_crops_belonged_to_load_scen = Crop.objects.filter(crop_type__in=crop_list)
+        msg += f" Ncrops {len(list(all_crops_belonged_to_load_scen))}"
+
+        ### TEMPORARY
+        #
+        #crop_code_field = "caml_code"
+        #
+        ### TEMPORARY
+
         for crop in all_crops_belonged_to_load_scen:
             if crop.id in explicit_modifications:
-                msg += f" {getattr(crop, crop_code_field)} {explicit_modifications[crop.id]}"
+                msg += f" {int(getattr(crop, crop_code_field))} {explicit_modifications[crop.id]}"
             else:
                 msg += f" {getattr(crop, crop_code_field)} {explicit_modifications['All']}"
 
@@ -396,7 +405,7 @@ class MantisServer(models.Model):
             self._non_async_send(model_run)
         except:
             # on any exception, reset the state of this model run so it will be picked up again later
-            model_run.status = ModelRun.ERROR
+            model_run.status = ModelRun.READY  # set it to ready on a generic failure so it tries again - we'll set it to error if it tells us to
             model_run.save()
             raise
 
@@ -416,12 +425,18 @@ class MantisServer(models.Model):
         # s.flush()
         # mantis_writer.drain()  # make sure the full command is sent before proceeding with this function
 
-        results = s.recv(999999999)  # basically, wait for Mantis to close the connection
+        results = b""
+        while True:
+            results += s.recv(99999999)  # receive a chunk
+            if results.endswith(b"ENDofMSG\n"):  # if Mantis says it finished and closed it, then break - otherwise get another chunk
+                break
+
         process_results(results, model_run)
         # model_run.result_values = str(results)
-        model_run.status = ModelRun.COMPLETED
-        model_run.date_completed = arrow.utcnow().datetime
-        model_run.save()
+        if model_run.status != ModelRun.ERROR:  # if it wasn't already marked as an error
+            model_run.status = ModelRun.COMPLETED
+            model_run.date_completed = arrow.utcnow().datetime
+            model_run.save()
 
         log.info("Results saved")
 
@@ -438,7 +453,7 @@ def process_results(results, model_run):
     # if results.startswith(status_message):
     # 	results = results[len(status_message):]  # if it starts with a status message, remove it
 
-    results_values = results.split(" ")
+    results_values = results.split(b" ")
     if results_values[0] == "0":  # Yes, a string 0 because of parsing. It means Mantis failed, store the error message
         model_run.status_message = results_values
         model_run.status = ModelRun.ERROR
@@ -449,14 +464,14 @@ def process_results(results, model_run):
 
     # slice off any blanks
     results_values = [value for value in results_values if value not in (
-        "", "\n")]  # drop any extra empty values we got because they make the total number go off
+        b"", b"\n")]  # drop any extra empty values we got because they make the total number go off
     model_run.n_wells = int(results_values[1])
     n_years = int(results_values[2])
     results_values = results_values[
                      3:-1]  # first value is status message, second value is number of wells, third is number of years, last is "EndOfMsg"
 
     # we need to have a number of results divisible by the number of wells and the number of years, so do some checks
-    if len(results_values) % n_years != 0 or (len(results_values) / model_run.n_wells) != model_run.n_years:
+    if len(results_values) % n_years != 0 or (len(results_values) / model_run.n_wells) != n_years:
         error_message = "Got an incorrect number of results from model run. Cannot reliably process to percentiles. You may try again"
         model_run.status = ModelRun.ERROR
         model_run.status_message = error_message
