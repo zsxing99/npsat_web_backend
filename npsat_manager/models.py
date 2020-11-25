@@ -224,7 +224,7 @@ class ModelRun(models.Model):
     regions = models.ManyToManyField(Region, related_name="model_runs")
 
     # other model specs
-    n_years = models.IntegerField(default=100, blank=True)
+    sim_end_year = models.IntegerField(default=2300, blank=True)
     reduction_start_year = models.IntegerField(default=2020, blank=True)
     reduction_end_year = models.IntegerField(default=2025, blank=True)
     water_content = models.DecimalField(max_digits=5, decimal_places=4, default=0)
@@ -273,7 +273,7 @@ class ModelRun(models.Model):
 
     @property
     def input_message(self):
-        msg = f"endSimYear {str(1945+self.n_years)}"
+        msg = f"endSimYear {str(self.sim_end_year)}"
         msg += f" startRed {self.reduction_start_year}"
         msg += f" endRed {self.reduction_end_year}"
         msg += f" flowScen {self.flow_scenario.name}"
@@ -451,12 +451,12 @@ def process_results(results, model_run):
     results_values = [value for value in results_values if value not in (
         "", "\n")]  # drop any extra empty values we got because they make the total number go off
     model_run.n_wells = int(results_values[1])
-    # n_years = int(results_value[2])  # we're not using this right now
+    n_years = int(results_values[2])
     results_values = results_values[
                      3:-1]  # first value is status message, second value is number of wells, third is number of years, last is "EndOfMsg"
 
     # we need to have a number of results divisible by the number of wells and the number of years, so do some checks
-    if len(results_values) % model_run.n_years != 0 or (len(results_values) / model_run.n_wells) != model_run.n_years:
+    if len(results_values) % n_years != 0 or (len(results_values) / model_run.n_wells) != model_run.n_years:
         error_message = "Got an incorrect number of results from model run. Cannot reliably process to percentiles. You may try again"
         model_run.status = ModelRun.ERROR
         model_run.status_message = error_message
@@ -467,7 +467,7 @@ def process_results(results, model_run):
     # we're going to make a 2 dimensional numpy array where every row is a well and every column is a year
     # start by making it a numpy array and convert to float by default
     results_array = numpy.array(results_values, dtype=numpy.float)
-    results_2d = results_array.reshape(model_run.n_wells, model_run.n_years)
+    results_2d = results_array.reshape(model_run.n_wells, n_years)
 
     # get the percentiles - when a percentile would be between 2 values, get the nearest actual value in the dataset
     # instead of interpolating between them, mostly because numpy throws errors when we try that.
