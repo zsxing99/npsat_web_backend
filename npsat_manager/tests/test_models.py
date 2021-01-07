@@ -16,7 +16,8 @@ class ResourcesTestCase(TestCase):
     """
     This class tests all sets of resources: regions, crops, scenarios
     """
-    def setUp(self) -> None:
+    @classmethod
+    def setUpTestData(cls):
         pass
 
     def test_regions_CRUD(self):
@@ -138,7 +139,8 @@ class ModelRunTestCase(TestCase):
             Tests for super user are skipped.
         2. There isn't any permission check at db level, so only one user instance is tested here.
     """
-    def setUp(self) -> None:
+    @classmethod
+    def setUpTestData(cls):
         """
         Setting up users and some resources
         """
