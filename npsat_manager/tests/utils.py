@@ -215,3 +215,52 @@ def load_crops(proportion=0.5, ignore_check=False):
             swat_crop.save()
             gnlm_crop.save()
 
+
+def load_test_users():
+    """
+    This function loads 3 test normal users and 1 admin user
+    """
+    User.objects.create(username="test_user1", password="user1").save()
+    User.objects.create(username="test_user2", password="user2").save()
+    User.objects.create(username="test_user3", password="user3").save()
+
+    User.objects.create(username="test_admin", password="admin").save()
+
+
+def load_default_BAU():
+    """
+    This function loads several BAU models
+    =====================================================
+    Note:
+        1. load_test_users must be called before this function as models depend on their creator
+        2. common resources must be loaded before this function
+    """
+
+    # ensure admin presents in the database
+    try:
+        admin = User.objects.get(username="test_admin")
+    except Exception as e:
+        print(str(e))
+        print("Error in retrieving admin user. Abort")
+        raise e
+
+    # create BAU
+    BAU_CV_GNLM = models.ModelRun.objects.create(
+        user=admin,
+        name="BAU Central Valley",
+        flow_scenario=models.Scenario.objects.get(name='CVHM_92_03_BUD0'),
+        load_scenario=models.Scenario.objects.get(name='GNLM'),
+        unsat_scenario=models.Scenario.objects.get(name='C2VSIM_SPRING_2015'),
+    )
+    BAU_CV_GNLM.regions.add(models.Region.objects.get(name="Central Valley"))
+    BAU_CV_GNLM.save()
+
+    BAU_CV_SWAT1 = models.ModelRun.objects.create(
+        user=admin,
+        name="BAU Central Valley",
+        flow_scenario=models.Scenario.objects.get(name='CVHM_92_03_BUD0'),
+        load_scenario=models.Scenario.objects.get(name='SWAT1'),
+        unsat_scenario=models.Scenario.objects.get(name='C2VSIM_SPRING_2015'),
+    )
+    BAU_CV_SWAT1.regions.add(models.Region.objects.get(name="Central Valley"))
+    BAU_CV_SWAT1.save()
