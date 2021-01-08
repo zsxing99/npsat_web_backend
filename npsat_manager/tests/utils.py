@@ -6,10 +6,10 @@ Note:
     2. this file should be updated when there is a change in the dataset
     3. No teardown method is provided because of the usage of setUpTestData
     4. This file should only be used for testing purpose. It's never part of production code
+    5. all data loaded are marked as `active_in_mantis` by default
 """
 
 from npsat_manager import models
-from django.db import transaction
 from django.contrib.auth.models import User
 from npsat_manager import load_data
 from npsat_backend import settings
@@ -227,18 +227,23 @@ def load_test_users():
     User.objects.create(username="test_admin", password="admin").save()
 
 
-def load_default_BAU():
+def load_default_model_runs():
     """
     This function loads several BAU models
     =====================================================
     Note:
         1. load_test_users must be called before this function as models depend on their creator
         2. common resources must be loaded before this function
+        3. After running the function:
+            admin user has 3 BAU
+            test_user1 has 1 public and 1 private user
+            others don't have any models
     """
 
     # ensure admin presents in the database
     try:
         admin = User.objects.get(username="test_admin")
+        test_user1 = User.objects.get(username="test_user1")
     except Exception as e:
         print(str(e))
         print("Error in retrieving admin user. Abort")
@@ -247,20 +252,48 @@ def load_default_BAU():
     # create BAU
     BAU_CV_GNLM = models.ModelRun.objects.create(
         user=admin,
-        name="BAU Central Valley",
+        name="BAU Central Valley GNLM",
         flow_scenario=models.Scenario.objects.get(name='CVHM_92_03_BUD0'),
         load_scenario=models.Scenario.objects.get(name='GNLM'),
         unsat_scenario=models.Scenario.objects.get(name='C2VSIM_SPRING_2015'),
+        is_base=True,
+        status=models.ModelRun.COMPLETED
     )
     BAU_CV_GNLM.regions.add(models.Region.objects.get(name="Central Valley"))
     BAU_CV_GNLM.save()
 
     BAU_CV_SWAT1 = models.ModelRun.objects.create(
         user=admin,
-        name="BAU Central Valley",
+        name="BAU Central Valley SWAT1",
         flow_scenario=models.Scenario.objects.get(name='CVHM_92_03_BUD0'),
         load_scenario=models.Scenario.objects.get(name='SWAT1'),
         unsat_scenario=models.Scenario.objects.get(name='C2VSIM_SPRING_2015'),
+        is_base=True
     )
+
     BAU_CV_SWAT1.regions.add(models.Region.objects.get(name="Central Valley"))
     BAU_CV_SWAT1.save()
+
+    CV_test_user1_private = models.ModelRun.objects.create(
+        user=test_user1,
+        name="Central Valley SWAT1 private",
+        flow_scenario=models.Scenario.objects.get(name='CVHM_92_03_BUD0'),
+        load_scenario=models.Scenario.objects.get(name='SWAT1'),
+        unsat_scenario=models.Scenario.objects.get(name='C2VSIM_SPRING_2015'),
+        is_base=False,
+        public=False
+    )
+
+    CV_test_user1_private.save()
+
+    CV_test_user1_public = models.ModelRun.objects.create(
+        user=test_user1,
+        name="Central Valley SWAT1 public",
+        flow_scenario=models.Scenario.objects.get(name='CVHM_92_03_BUD0'),
+        load_scenario=models.Scenario.objects.get(name='SWAT1'),
+        unsat_scenario=models.Scenario.objects.get(name='C2VSIM_SPRING_2015'),
+        is_base=False,
+        public=True
+    )
+
+    CV_test_user1_public.save()
