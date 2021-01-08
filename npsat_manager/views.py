@@ -1,11 +1,5 @@
-from django.shortcuts import render
-
 from rest_framework import viewsets
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import BasePermission, IsAuthenticated, IsAdminUser, SAFE_METHODS
-from rest_framework import generics
-from django.contrib.auth.decorators import login_required
 
 from npsat_manager import serializers
 from npsat_manager import models
@@ -16,6 +10,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from django.db.models import Q
+from rest_framework import status
 
 
 class CustomAuthToken(ObtainAuthToken):
@@ -42,6 +37,24 @@ class CustomAuthToken(ObtainAuthToken):
 class ReadOnly(BasePermission):
 	def has_permission(self, request, view):
 		return request.method in SAFE_METHODS
+
+
+class ModifyAccessPermission(BasePermission):
+	"""
+	This permission is particularly defined for model run
+	"""
+	def has_permission(self, request, view):
+		# it defines a special case for POST request
+		if request.method == "POST":
+			# user can only create model for oneself
+			print(request)
+			return request.data["user"] == request.user.id or request.user.is_staff
+		return True
+
+	def has_object_permission(self, request, view, obj):
+		if request.method not in SAFE_METHODS:
+			return request.user == obj.user
+		return True
 
 
 # Create your views here.
@@ -180,13 +193,16 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 			false(default) or true, this will include base model info
 	These params are additional filter to sift models to return the model list
 	"""
-	permission_classes = [IsAuthenticated]
-
+	permission_classes = [IsAuthenticated & ModifyAccessPermission]
+	http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
 	serializer_class = serializers.RunResultSerializer
 
 	def retrieve(self, request, *args, **kwargs):
 		serializer = None
 		instance = self.get_object()
+		# check if user have permission reading this model
+		if instance.user != self.request.user and not instance.public and not instance.is_base:
+			return Response(status=status.HTTP_403_FORBIDDEN)
 		# whether the client sends note that include base model
 		include_base = self.request.query_params.get("includeBase", False)
 		base_model = None
@@ -267,7 +283,7 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 		return results.order_by('-id')
 
 
-class ModificationViewSet(viewsets.ModelViewSet):
+class ModificationViewSet(viewsets.ReadOnlyModelViewSet):
 	"""
 	API endpoint that allows listing of Modifications
 
@@ -287,7 +303,7 @@ class ModificationViewSet(viewsets.ModelViewSet):
 			.order_by('-id')
 
 
-class ResultPercentileViewSet(viewsets.ModelViewSet):
+class ResultPercentileViewSet(viewsets.ReadOnlyModelViewSet):
 	"""
 	API endpoint for model results
 	restricted to only allow GET request

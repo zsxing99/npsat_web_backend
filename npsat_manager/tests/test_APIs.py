@@ -11,6 +11,9 @@ from rest_framework.test import APIClient
 from npsat_manager import models
 from npsat_manager.tests import utils
 from rest_framework.authtoken.models import Token
+from django.contrib.auth.models import User
+
+import random
 
 
 class APITestCase(TestCase):
@@ -255,13 +258,127 @@ class APITestCase(TestCase):
         """
         Test model run creation
         """
-        pass
+        # some pre-loaded resources
+        crops = models.Crop.objects.filter(active_in_mantis=True)
+        regions = models.Region.objects.filter(region_type=models.Region.CVHM_FARM)
+        user1 = User.objects.get(username="test_user1")
+        flow_scen = models.Scenario.objects.get(name="CVHM_92_03_BUD0")
+        unsat_scen = models.Scenario.objects.get(name="GNLM")
+        load_scen = models.Scenario.objects.get(name="C2VSIM_SPRING_2015")
+        # test with non login user
+        client_no_login = APIClient()
+
+        # test access
+        data = {
+            "name": "Test Model Run POST endpoint 1",
+            "user": user1.id,
+            "modifications": [
+                {
+                    "crop": {
+                        "id": crop.id
+                    },
+                    "proportion": 0.5
+                } for crop in crops
+            ],
+            "regions": [
+                {
+                    "id": region.id
+                } for region in regions
+            ],
+            "unsat_scenario": {"id": unsat_scen.id},
+            "flow_scenario": {"id": flow_scen.id},
+            "load_scenario": {"id": load_scen.id}
+        }
+        res = client_no_login.post("/api/model_run/", data, format="json")
+        self.assertEqual(res.status_code, 401)
+
+        # test logged in user
+        token = Token.objects.get(user__username='test_user1')
+        client_logged_in = APIClient()
+        client_logged_in.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+
+        res = client_logged_in.post("/api/model_run/", data, format="json")
+        self.assertEqual(res.status_code, 201)
+
+        # switch to test user 2
+        token = Token.objects.get(user__username='test_user2')
+        client_logged_in = APIClient()
+        client_logged_in.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+
+        res = client_logged_in.post("/api/model_run/", data, format="json")
+        self.assertEqual(res.status_code, 403)
+
 
     def test_model_run_delete(self):
         """
         Test model run deletion(single)
         """
-        pass
+        # retrieve ids of test model run
+        BAU_model_run = models.ModelRun.objects.get(name="BAU Central Valley GNLM")
+        # below two model runs belong to test user 1
+        private_model_run = models.ModelRun.objects.get(name="Central Valley SWAT1 private")
+        public_model_run = models.ModelRun.objects.get(name="Central Valley SWAT1 public")
+
+        # non user login test cases
+        client_no_login = APIClient()
+        res = client_no_login.delete("/api/model_run/{}/".format(BAU_model_run.id))
+        self.assertEqual(res.status_code, 401)
+
+        # login test user 2 and try to remove models created by others
+        token = Token.objects.get(user__username='test_user2')
+        client_logged_in = APIClient()
+        client_logged_in.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+
+        res = client_logged_in.delete("/api/model_run/{}/".format(BAU_model_run.id))
+        self.assertEqual(res.status_code, 403)
+        res = client_logged_in.delete("/api/model_run/{}/".format(private_model_run.id))
+        self.assertEqual(res.status_code, 404)
+        res = client_logged_in.delete("/api/model_run/{}/".format(public_model_run.id))
+        self.assertEqual(res.status_code, 403)
+
+        # switch to test user 1 and try to remove the models created by test user 1
+        token = Token.objects.get(user__username='test_user1')
+        client_logged_in = APIClient()
+        client_logged_in.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+
+        res = client_logged_in.delete("/api/model_run/{}/".format(BAU_model_run.id))
+        self.assertEqual(res.status_code, 403)
+        res = client_logged_in.delete("/api/model_run/{}/".format(private_model_run.id))
+        self.assertEqual(res.status_code, 204)
+        res = client_logged_in.delete("/api/model_run/{}/".format(public_model_run.id))
+        self.assertEqual(res.status_code, 204)
+
+    def test_model_update(self):
+        """
+        Test updating model
+        This endpoint is mainly used for publishing the model
+        ===========================================================
+        Note:
+            1. It is not a comprehensive test on the PUT method, but only tests the functionality of it
+            2. Power users are able to break model attributes and modify to whatever they want through this endpoint
+            3. Add future tests if we want to limit the capability of this endpoint
+            4. PATCH method is disabled in the model viewset
+        """
+        # retrieve ids of test model run
+        BAU_model_run = models.ModelRun.objects.get(name="BAU Central Valley GNLM")
+        # below two model runs belong to test user 1
+        private_model_run = models.ModelRun.objects.get(name="Central Valley SWAT1 private")
+        public_model_run = models.ModelRun.objects.get(name="Central Valley SWAT1 public")
+
+        # test with non login user
+        client_no_login = APIClient()
+
+        # test access
+        data = {"public": False}
+        res = client_no_login.put("/api/model_run/{}/".format(BAU_model_run.id), data, format="json")
+        self.assertEqual(res.status_code, 401)
+
+        # test with logged in user to change other users' models
+        token = Token.objects.get(user__username='test_user3')
+        client_logged_in = APIClient()
+        client_logged_in.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        res = client_logged_in.put("/api/model_run/{}/".format(private_model_run.id), data, format="json")
+        self.assertEqual(res.status_code, 404)
 
 
 class StimulationAPITest(TestCase):
