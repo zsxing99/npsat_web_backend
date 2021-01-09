@@ -22,8 +22,10 @@ jobs:
         pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         if [ -f optional-requirements.txt ]; then pip install -r optional-requirements.txt; fi
-    - name: Copy settings file
-      run: cp ./npsat_backend/local_settings_template.py ./npsat_backend/local_settings.py
+    - name: Setup environment and settings
+      run: |
+        cp ./npsat_backend/local_settings_template.py ./npsat_backend/local_settings.py
+        cp ./npsat_backend/databases_template.py ./npsat_backend/databases.py
     - name: Run migrations
       run: python manage.py migrate
     - name: Run tests
