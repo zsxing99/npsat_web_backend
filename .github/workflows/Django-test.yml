@@ -26,6 +26,7 @@ jobs:
       run: |
         cp ./npsat_backend/local_settings_template.py ./npsat_backend/local_settings.py
         cp ./npsat_backend/databases_template.py ./npsat_backend/databases.py
+        mkdir ../logs
     - name: Run migrations
       run: python manage.py migrate
     - name: Run tests
