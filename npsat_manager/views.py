@@ -47,7 +47,6 @@ class ModifyAccessPermission(BasePermission):
 		# it defines a special case for POST request
 		if request.method == "POST":
 			# user can only create model for oneself
-			print(request)
 			return request.data["user"] == request.user.id or request.user.is_staff
 		return True
 
