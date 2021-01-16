@@ -246,7 +246,7 @@ class ModelRun(models.Model):
     # visibility to the public
     public = models.BooleanField(null=False, blank=False, default=False)
 
-    # whether current model is a base model for its scenario
+    # whether current model is a base model for its scenario; alias: BAU
     is_base = models.BooleanField(null=False, blank=False, default=False)
 
     # modifications - backward relationship
