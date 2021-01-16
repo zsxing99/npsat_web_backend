@@ -43,13 +43,6 @@ class ModifyAccessPermission(BasePermission):
 	"""
 	This permission is particularly defined for model run
 	"""
-	def has_permission(self, request, view):
-		# it defines a special case for POST request
-		if request.method == "POST":
-			# user can only create model for oneself
-			return request.data["user"] == request.user.id or request.user.is_staff
-		return True
-
 	def has_object_permission(self, request, view, obj):
 		if request.method not in SAFE_METHODS:
 			return request.user == obj.user
@@ -195,6 +188,11 @@ class ModelRunViewSet(viewsets.ModelViewSet):
 	permission_classes = [IsAuthenticated & ModifyAccessPermission]
 	http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
 	serializer_class = serializers.RunResultSerializer
+
+	def get_serializer_context(self):
+		context = super(ModelRunViewSet, self).get_serializer_context()
+		context.update({"user": self.request.user})
+		return context
 
 	def retrieve(self, request, *args, **kwargs):
 		serializer = None
