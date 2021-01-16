@@ -160,11 +160,17 @@ class RunResultSerializer(serializers.ModelSerializer):
 				  'reduction_start_year', 'reduction_end_year', 'is_base', 'results', 'n_wells', 'public',
 				  'load_scenario', 'flow_scenario', 'unsat_scenario')
 		depth = 0  # should mean that modifications get included in the initial request
+		extra_kwargs = {
+			"user": {
+				"required": False
+			}
+		}
 
 	def validate(self, data):
 		return data
 
 	def create(self, validated_data):
+		user = self.context["user"]
 		regions_data = validated_data.pop('regions')
 		modifications_data = validated_data.pop('modifications')
 		unsat_scenario = validated_data.pop('unsat_scenario')
@@ -172,6 +178,7 @@ class RunResultSerializer(serializers.ModelSerializer):
 		flow_scenario = validated_data.pop('flow_scenario')
 
 		model_run = models.ModelRun.objects.create(**validated_data,
+												   user=user,
 												   unsat_scenario=models.Scenario.objects.get(id=unsat_scenario['id']),
 												   flow_scenario=models.Scenario.objects.get(id=flow_scenario['id']),
 												   load_scenario=models.Scenario.objects.get(id=load_scenario['id']),

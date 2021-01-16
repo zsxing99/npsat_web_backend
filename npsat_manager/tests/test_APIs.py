@@ -21,6 +21,7 @@ class APITestCase(TestCase):
     Test for all APIs:
         single operation tests
     """
+
     @classmethod
     def setUpTestData(cls):
         """set up common resources and some fake users/models"""
@@ -150,6 +151,7 @@ class APITestCase(TestCase):
         1. Serializers are tested by Django. We will only check if some fields are correctly
             outputted in the response
     """
+
     def test_model_run_read(self):
         """
         Test read in model run endpoints.
@@ -271,7 +273,6 @@ class APITestCase(TestCase):
         # test access
         data = {
             "name": "Test Model Run POST endpoint 1",
-            "user": user1.id,
             "modifications": [
                 {
                     "crop": {
@@ -306,8 +307,7 @@ class APITestCase(TestCase):
         client_logged_in.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
 
         res = client_logged_in.post("/api/model_run/", data, format="json")
-        self.assertEqual(res.status_code, 403)
-
+        self.assertEqual(res.status_code, 201)
 
     def test_model_run_delete(self):
         """
@@ -385,9 +385,9 @@ class StimulationAPITest(TestCase):
     """
     Stimulate front end queries
     """
+
     @classmethod
     def setUpTestData(cls):
         utils.load_resources(0.5)
         utils.load_test_users()
         utils.load_default_model_runs()
-
