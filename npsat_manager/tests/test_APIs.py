@@ -300,7 +300,7 @@ class APITestCase(TestCase):
         self.assertEqual(res.status_code, 201)
 
         # check if the model and the BAU model is created
-        self.assertEqual(models.ModelRun.objects.filter(name="BAU model of Test Model Run POST endpoint 1").count(), 1)
+        self.assertEqual(models.ModelRun.objects.filter(name="BAU model").count(), 1)
 
         # switch to test user 2
         token = Token.objects.get(user__username='test_user2')
@@ -311,7 +311,7 @@ class APITestCase(TestCase):
         self.assertEqual(res.status_code, 201)
 
         # check if the model and the BAU model is created; it should not because we already have one
-        self.assertEqual(models.ModelRun.objects.filter(name="BAU model of Test Model Run POST endpoint 1").count(), 1)
+        self.assertEqual(models.ModelRun.objects.filter(name="BAU model").count(), 1)
 
     def test_model_run_delete(self):
         """
